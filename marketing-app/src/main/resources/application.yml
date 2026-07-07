@@ -1,0 +1,5 @@
+spring:
+  config:
+    name: marketing-app
+  profiles:
+    active: dev
