@@ -5,30 +5,28 @@ use
 
 DROP TABLE IF EXISTS `award`;
 
-CREATE TABLE `award`
-(
-    `id`           int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-    `award_id`     int(8) NOT NULL COMMENT '抽奖奖品ID - 内部流转使用',
-    `award_key`    varchar(32)  NOT NULL COMMENT '奖品对接标识 - 每一个都是一个对应的发奖策略',
-    `award_config` varchar(32)  NOT NULL COMMENT '奖品配置信息',
-    `award_desc`   varchar(128) NOT NULL COMMENT '奖品内容描述',
-    `create_time`  datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`  datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`)
+CREATE TABLE `award` (
+                         `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+                         `award_id` int(8) NOT NULL COMMENT '抽奖奖品ID - 内部流转使用',
+                         `award_key` varchar(32) NOT NULL COMMENT '奖品对接标识 - 每一个都是一个对应的发奖策略',
+                         `award_config` varchar(32) NOT NULL COMMENT '奖品配置信息',
+                         `award_desc` varchar(128) NOT NULL COMMENT '奖品内容描述',
+                         `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                         `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                         PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `award` (`id`, `award_id`, `award_key`, `award_config`, `award_desc`, `create_time`, `update_time`)
-VALUES (1, 101, 'user_credit_random', '1,100', '用户积分【优先透彻规则范围，如果没有则走配置】', '2023-12-09 11:07:06',
-        '2023-12-09 11:21:31'),
-       (2, 102, 'openai_use_count', '5', 'OpenAI 增加使用次数', '2023-12-09 11:07:06', '2023-12-09 11:12:59'),
-       (3, 103, 'openai_use_count', '10', 'OpenAI 增加使用次数', '2023-12-09 11:07:06', '2023-12-09 11:12:59'),
-       (4, 104, 'openai_use_count', '20', 'OpenAI 增加使用次数', '2023-12-09 11:07:06', '2023-12-09 11:12:58'),
-       (5, 105, 'openai_model', 'gpt-4', 'OpenAI 增加模型', '2023-12-09 11:07:06', '2023-12-09 11:12:01'),
-       (6, 106, 'openai_model', 'dall-e-2', 'OpenAI 增加模型', '2023-12-09 11:07:06', '2023-12-09 11:12:08'),
-       (7, 107, 'openai_model', 'dall-e-3', 'OpenAI 增加模型', '2023-12-09 11:07:06', '2023-12-09 11:12:10'),
-       (8, 108, 'openai_use_count', '100', 'OpenAI 增加使用次数', '2023-12-09 11:07:06', '2023-12-09 11:12:55'),
-       (9, 109, 'openai_model', 'gpt-4,dall-e-2,dall-e-3', 'OpenAI 增加模型', '2023-12-09 11:07:06',
-        '2023-12-09 11:12:39');
+VALUES
+    (1,101,'user_credit_random','1,100','用户积分【优先透彻规则范围，如果没有则走配置】','2023-12-09 11:07:06','2023-12-09 11:21:31'),
+    (2,102,'openai_use_count','5','OpenAI 增加使用次数','2023-12-09 11:07:06','2023-12-09 11:12:59'),
+    (3,103,'openai_use_count','10','OpenAI 增加使用次数','2023-12-09 11:07:06','2023-12-09 11:12:59'),
+    (4,104,'openai_use_count','20','OpenAI 增加使用次数','2023-12-09 11:07:06','2023-12-09 11:12:58'),
+    (5,105,'openai_model','gpt-4','OpenAI 增加模型','2023-12-09 11:07:06','2023-12-09 11:12:01'),
+    (6,106,'openai_model','dall-e-2','OpenAI 增加模型','2023-12-09 11:07:06','2023-12-09 11:12:08'),
+    (7,107,'openai_model','dall-e-3','OpenAI 增加模型','2023-12-09 11:07:06','2023-12-09 11:12:10'),
+    (8,108,'openai_use_count','100','OpenAI 增加使用次数','2023-12-09 11:07:06','2023-12-09 11:12:55'),
+    (9,109,'openai_model','gpt-4,dall-e-2,dall-e-3','OpenAI 增加模型','2023-12-09 11:07:06','2023-12-09 11:12:39');
 
 
 DROP TABLE IF EXISTS `strategy`;
@@ -37,6 +35,7 @@ CREATE TABLE `strategy` (
                             `id` bigint(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增ID',
                             `strategy_id` bigint(8) NOT NULL COMMENT '抽奖策略ID',
                             `strategy_desc` varchar(128) NOT NULL COMMENT '抽奖策略描述',
+                            `rule_models` varchar(256) DEFAULT NULL COMMENT '规则模型，rule配置的模型同步到此表，便于使用',
                             `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                             `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                             PRIMARY KEY (`id`),
@@ -44,9 +43,10 @@ CREATE TABLE `strategy` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
-INSERT INTO `strategy` (`id`, `strategy_id`, `strategy_desc`, `create_time`, `update_time`)
+INSERT INTO `strategy` (`id`, `strategy_id`, `strategy_desc`, `rule_models`, `create_time`, `update_time`)
 VALUES
-    (1,100001,'抽奖策略','2023-12-09 09:37:19','2023-12-09 09:37:19');
+    (1,100001,'抽奖策略','rule_weight,rule_blacklist','2023-12-09 09:37:19','2023-12-09 18:06:34');
+
 
 DROP TABLE IF EXISTS `strategy_award`;
 
@@ -69,15 +69,18 @@ CREATE TABLE `strategy_award` (
 
 INSERT INTO `strategy_award` (`id`, `strategy_id`, `award_id`, `award_title`, `award_subtitle`, `award_count`, `award_count_surplus`, `award_rate`, `rule_models`, `sort`, `create_time`, `update_time`)
 VALUES
-    (1,100001,101,'随机积分',NULL,80000,80000,80.0000,'rule_random,rule_luck_award',1,'2023-12-09 09:38:31','2023-12-09 10:58:06'),
-    (2,100001,102,'5次使用',NULL,10000,10000,10.0000,'rule_luck_award',2,'2023-12-09 09:39:18','2023-12-09 10:34:23'),
-    (3,100001,103,'10次使用',NULL,5000,5000,5.0000,'rule_luck_award',3,'2023-12-09 09:42:36','2023-12-09 10:34:24'),
-    (4,100001,104,'20次使用',NULL,4000,4000,4.0000,'rule_luck_award',4,'2023-12-09 09:43:15','2023-12-09 10:34:25'),
-    (5,100001,105,'增加gpt-4对话模型',NULL,600,600,0.6000,'rule_luck_award',5,'2023-12-09 09:43:47','2023-12-09 10:34:26'),
-    (6,100001,106,'增加dall-e-2画图模型',NULL,200,200,0.2000,'rule_luck_award',6,'2023-12-09 09:44:20','2023-12-09 10:34:26'),
-    (7,100001,107,'增加dall-e-3画图模型','抽奖1次后解锁',200,200,0.2000,'rule_lock,rule_luck_award',7,'2023-12-09 09:45:38','2023-12-09 10:30:59'),
-    (8,100001,108,'增加100次使用','抽奖2次后解锁',199,199,0.1999,'rule_lock,rule_luck_award',8,'2023-12-09 09:46:02','2023-12-09 12:20:52'),
-    (9,100001,109,'解锁全部模型','抽奖6次后解锁',1,1,0.0001,'rule_lock,rule_luck_award',9,'2023-12-09 09:46:39','2023-12-09 12:20:50');
+    (1,100001,101,'随机积分',NULL,80000,80000,0.3000,'rule_random,rule_luck_award',1,'2023-12-09 09:38:31','2023-12-23 13:03:15'),
+    (2,100001,102,'5次使用',NULL,10000,10000,0.2000,'rule_luck_award',2,'2023-12-09 09:39:18','2023-12-23 13:59:56'),
+    (3,100001,103,'10次使用',NULL,5000,5000,0.2000,'rule_luck_award',3,'2023-12-09 09:42:36','2023-12-23 14:00:00'),
+    (4,100001,104,'20次使用',NULL,4000,4000,0.1000,'rule_luck_award',4,'2023-12-09 09:43:15','2023-12-23 14:00:10'),
+    (5,100001,105,'增加gpt-4对话模型',NULL,600,600,0.1000,'rule_luck_award',5,'2023-12-09 09:43:47','2023-12-23 14:00:12'),
+    (6,100001,106,'增加dall-e-2画图模型',NULL,200,200,0.0500,'rule_luck_award',6,'2023-12-09 09:44:20','2023-12-23 14:00:58'),
+    (7,100001,107,'增加dall-e-3画图模型','抽奖1次后解锁',200,200,0.0400,'rule_lock,rule_luck_award',7,'2023-12-09 09:45:38','2023-12-23 14:01:02'),
+    (8,100001,108,'增加100次使用','抽奖2次后解锁',199,199,0.0099,'rule_lock,rule_luck_award',8,'2023-12-09 09:46:02','2023-12-23 14:05:36'),
+    (9,100001,109,'解锁全部模型','抽奖6次后解锁',1,1,0.0001,'rule_lock,rule_luck_award',9,'2023-12-09 09:46:39','2023-12-09 12:20:50'),
+    (10,100002,101,'随机积分',NULL,1,1,0.5000,'rule_random,rule_luck_award',1,'2023-12-09 09:46:39','2023-12-23 14:23:51'),
+    (11,100002,102,'5次使用',NULL,1,1,0.1000,'rule_random,rule_luck_award',2,'2023-12-09 09:46:39','2023-12-23 14:23:52'),
+    (12,100002,106,'增加dall-e-2画图模型',NULL,1,1,0.0100,'rule_random,rule_luck_award',3,'2023-12-09 09:46:39','2023-12-23 14:23:53');
 
 
 DROP TABLE IF EXISTS `strategy_rule`;
@@ -111,5 +114,5 @@ VALUES
     (10,100001,104,2,'rule_luck_award','1,40','兜底奖品40以内随机积分','2023-12-09 10:30:43','2023-12-09 12:55:59'),
     (11,100001,105,2,'rule_luck_award','1,50','兜底奖品50以内随机积分','2023-12-09 10:30:43','2023-12-09 12:56:00'),
     (12,100001,106,2,'rule_luck_award','1,60','兜底奖品60以内随机积分','2023-12-09 10:30:43','2023-12-09 12:56:00'),
-    (13,100001,NULL,1,'rule_weight','6000,102,103,104,105,106,107,108,109','消耗6000分，必中奖范围','2023-12-09 10:30:43','2023-12-09 12:58:21'),
+    (13,100001,NULL,1,'rule_weight','6000:102,103,104,105,106,107,108,109','消耗6000分，必中奖范围','2023-12-09 10:30:43','2023-12-09 17:44:02'),
     (14,100001,NULL,1,'rule_blacklist','1','黑名单抽奖，积分兜底','2023-12-09 12:59:45','2023-12-09 13:42:23');
