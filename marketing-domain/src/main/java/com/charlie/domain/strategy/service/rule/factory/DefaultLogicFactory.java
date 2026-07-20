@@ -135,14 +135,8 @@ public class DefaultLogicFactory {
 
         ;
 
-        /**
-         * 规则编码:作为注册表 Key、数据库存储值、对外接口字段统一使用,具备唯一性
-         */
         private final String code;
 
-        /**
-         * 规则说明:仅用于日志输出与文档展示,不影响业务逻辑
-         */
         private final String info;
     }
 }

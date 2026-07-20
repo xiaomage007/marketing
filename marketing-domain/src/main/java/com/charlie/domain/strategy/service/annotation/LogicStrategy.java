@@ -18,5 +18,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface LogicStrategy {
 
-    DefaultLogicFactory.LogicModel logicModel();
+    DefaultLogicFactory.LogicModel logicMode();
+
 }
