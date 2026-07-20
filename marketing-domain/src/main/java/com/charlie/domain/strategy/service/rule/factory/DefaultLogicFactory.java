@@ -78,7 +78,7 @@ public class DefaultLogicFactory {
             // 未声明的视为通用/抽象实现,不应进入工厂
             if (null != strategy) {
                 // 以规则模型编码作为 Key,过滤器实例作为 Value 放入注册表
-                logicFilterMap.put(strategy.logicModel().getCode(), logic);
+                logicFilterMap.put(strategy.logicMode().getCode(), logic);
             }
         });
     }
