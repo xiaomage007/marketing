@@ -12,6 +12,7 @@ import com.charlie.domain.strategy.service.armory.IStrategyDispatch;
 import com.charlie.domain.strategy.service.rule.factory.DefaultLogicFactory;
 import com.charlie.types.enums.ResponseCode;
 import com.charlie.types.exception.AppException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -19,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author: Charlie
  * @date: 2026/7/20 8:11
  */
+@Slf4j
 public abstract class AbstractRaffleStrategy implements IRaffleStrategy {
 
     // 策略仓储服务 -> domain层像一个大厨，仓储层提供米面粮油
