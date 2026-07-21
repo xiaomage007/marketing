@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.charlie.domain.strategy.model.entity.RaffleAwardEntity;
 import com.charlie.domain.strategy.model.entity.RaffleFactorEntity;
 import com.charlie.domain.strategy.service.IRaffleStrategy;
+import com.charlie.domain.strategy.service.armory.IStrategyArmory;
 import com.charlie.domain.strategy.service.rule.impl.RuleWeightLogicFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -29,9 +30,12 @@ public class RaffleStrategyTest {
 
     @Resource
     private RuleWeightLogicFilter ruleWeightLogicFilter;
+    @Resource
+    private IStrategyArmory strategyArmory;
 
     @Before
     public void setUp() {
+        strategyArmory.assembleLotteryStrategy(100001L);
         ReflectionTestUtils.setField(ruleWeightLogicFilter, "userScore", 40500L);
     }
 
