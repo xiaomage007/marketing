@@ -4,6 +4,7 @@ import com.charlie.domain.strategy.model.entity.StrategyAwardEntity;
 import com.charlie.domain.strategy.model.entity.StrategyEntity;
 import com.charlie.domain.strategy.model.entity.StrategyRuleEntity;
 import com.charlie.domain.strategy.repository.IStrategyRepository;
+import com.charlie.types.common.Constants;
 import com.charlie.types.enums.ResponseCode;
 import com.charlie.types.exception.AppException;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,7 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
             List<Integer> ruleWeightValues = ruleWeightValueMap.get(key);
             ArrayList<StrategyAwardEntity> strategyAwardEntitiesClone = new ArrayList<>(strategyAwardEntities);
             strategyAwardEntitiesClone.removeIf(entity -> !ruleWeightValues.contains(entity.getAwardId()));
-            assembleLotteryStrategy(String.valueOf(strategyId).concat("_").concat(key), strategyAwardEntitiesClone);
+            assembleLotteryStrategy(String.valueOf(strategyId).concat(Constants.UNDERLINE).concat(key), strategyAwardEntitiesClone);
         }
 
         // 装配成功返回 true
@@ -132,7 +133,7 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
 
     @Override
     public Integer getRandomAwardId(Long strategyId, String ruleWeightValue) {
-        String key = String.valueOf(strategyId).concat("_").concat(ruleWeightValue);
+        String key = String.valueOf(strategyId).concat(Constants.UNDERLINE).concat(ruleWeightValue);
         // 分布式部署下，不一定为当前应用做的策略装配。也就是值不一定会保存到本应用，而是分布式应用，所以需要从 Redis 中获取。
         int rateRange = repository.getRateRange(key);
         // 通过生成的随机值，获取概率值奖品查找表的结果

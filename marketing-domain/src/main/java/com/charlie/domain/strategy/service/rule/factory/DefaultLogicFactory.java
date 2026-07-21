@@ -117,26 +117,22 @@ public class DefaultLogicFactory {
     @AllArgsConstructor
     public enum LogicModel {
 
-        /**
-         * 抽奖权重规则
-         * <p>
-         * 作用于抽奖前阶段,根据用户/策略维度的权重配置,返回可参与抽奖的范围 KEY 列表,
-         * 通常与 {@code rule_weight} 装配数据配合使用,用于控制不同奖品的命中概率。
-         */
-        RULE_WIGHT("rule_weight", "【抽奖前规则】根据抽奖权重返回可抽奖范围KEY"),
-
-        /**
-         * 黑名单规则
-         * <p>
-         * 作用于抽奖前阶段,用于判断当前用户是否命中黑名单;
-         * 命中黑名单的用户将被直接拦截,不进入后续抽奖流程,常用于风控场景。
-         */
-        RULE_BLACKLIST("rule_blacklist", "【抽奖前规则】黑名单规则过滤,命中黑名单则直接返回"),
-
+        RULE_WIGHT("rule_weight", "【抽奖前规则】根据抽奖权重返回可抽奖范围KEY", "before"),
+        RULE_BLACKLIST("rule_blacklist", "【抽奖前规则】黑名单规则过滤，命中黑名单则直接返回", "before"),
+        RULE_LOCK("rule_lock", "【抽奖中规则】抽奖n次后，对应奖品可解锁抽奖", "center"),
+        RULE_LUCK_AWARD("rule_luck_award", "【抽奖后规则】抽奖n次后，对应奖品可解锁抽奖", "after"),
         ;
 
         private final String code;
-
         private final String info;
+        private final String type;
+
+        public static boolean isCenter(String code){
+            return "center".equals(LogicModel.valueOf(code.toUpperCase()).type);
+        }
+
+        public static boolean isAfter(String code){
+            return "after".equals(LogicModel.valueOf(code.toUpperCase()).type);
+        }
     }
 }
