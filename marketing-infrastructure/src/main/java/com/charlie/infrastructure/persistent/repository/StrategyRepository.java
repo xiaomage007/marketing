@@ -3,6 +3,7 @@ package com.charlie.infrastructure.persistent.repository;
 import com.charlie.domain.strategy.model.entity.StrategyAwardEntity;
 import com.charlie.domain.strategy.model.entity.StrategyEntity;
 import com.charlie.domain.strategy.model.entity.StrategyRuleEntity;
+import com.charlie.domain.strategy.model.valobj.StrategyAwardRuleModelVO;
 import com.charlie.domain.strategy.repository.IStrategyRepository;
 import com.charlie.infrastructure.persistent.dao.IStrategyAwardDao;
 import com.charlie.infrastructure.persistent.dao.IStrategyDao;
@@ -14,11 +15,9 @@ import com.charlie.infrastructure.persistent.redis.IRedisService;
 import com.charlie.types.common.Constants;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -160,4 +159,12 @@ public class StrategyRepository implements IStrategyRepository {
         strategyRule.setRuleModel(ruleModel);
         return strategyRuleDao.queryStrategyRuleValue(strategyRule);
     }
+
+    @Override
+    public StrategyAwardRuleModelVO queryStrategyAwardRuleModelVO(Long strategyId, Integer awardId) {
+        StrategyAward strategyAward = new StrategyAward();
+        strategyAward.setStrategyId(strategyId);
+        strategyAward.setAwardId(awardId);
+        String ruleModels = strategyAwardDao.queryStrategyAwardRuleModels(strategyAward);
+        return StrategyAwardRuleModelVO.builder().ruleModels(ruleModels).build();    }
 }
