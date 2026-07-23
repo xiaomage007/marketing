@@ -1,4 +1,4 @@
-package com.charlie.domain.strategy.service.rule;
+package com.charlie.domain.strategy.service.rule.filter;
 
 import com.charlie.domain.strategy.model.entity.RuleActionEntity;
 import com.charlie.domain.strategy.model.entity.RuleMatterEntity;
