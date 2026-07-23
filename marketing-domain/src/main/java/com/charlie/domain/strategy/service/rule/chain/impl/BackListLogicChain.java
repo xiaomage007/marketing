@@ -27,7 +27,6 @@ public class BackListLogicChain extends AbstractLogicChain {
         String ruleValue = repository.queryStrategyRuleValue(strategyId, ruleModel());
         String[] splitRuleValue = ruleValue.split(Constants.COLON);
         Integer awardId = Integer.parseInt(splitRuleValue[0]);
-
         // 黑名单抽奖判断
         String[] userBlackIds = splitRuleValue[1].split(Constants.SPLIT);
         for (String userBlackId : userBlackIds) {
@@ -36,7 +35,6 @@ public class BackListLogicChain extends AbstractLogicChain {
                 return awardId;
             }
         }
-
         return next().logic(userId, strategyId);
     }
 
