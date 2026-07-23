@@ -1,6 +1,6 @@
 package com.charlie.domain.strategy.model.valobj;
 
-import com.charlie.domain.strategy.service.rule.factory.DefaultLogicFactory;
+import com.charlie.domain.strategy.service.rule.filter.factory.DefaultLogicFactory;
 import com.charlie.types.common.Constants;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

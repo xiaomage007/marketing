@@ -46,7 +46,7 @@ CREATE TABLE `strategy` (
 
 INSERT INTO `strategy` (`id`, `strategy_id`, `strategy_desc`, `rule_models`, `create_time`, `update_time`)
 VALUES
-    (1,100001,'抽奖策略','rule_weight,rule_blacklist','2023-12-09 09:37:19','2023-12-09 18:06:34'),
+    (1,100001,'抽奖策略','rule_blacklist,rule_weight','2023-12-09 09:37:19','2023-12-09 18:06:34'),
     (2,100003,'抽奖策略-验证lock',NULL,'2024-01-13 10:34:06','2024-01-13 10:34:06'),
     (3,100002,'抽奖策略-非完整1概率',NULL,'2023-12-09 09:37:19','2024-01-13 11:08:20');
 
