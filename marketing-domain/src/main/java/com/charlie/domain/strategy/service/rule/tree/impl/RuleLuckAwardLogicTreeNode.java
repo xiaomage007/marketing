@@ -8,7 +8,11 @@ import org.springframework.stereotype.Component;
 
 /**
  * @ClassName: RuleLuckAwardLogicTreeNode
- * @Description: 兜底奖励节点
+ * @Description: 兜底奖励节点。
+ *               <p>语义：当上游规则（如次数锁、库存）TAKE_OVER 接管后，决策树跳到此节点，
+ *               覆盖最终奖品为「兜底奖品」，避免用户拿不到任何奖励。
+ *               <p>当前为占位实现：固定返回 awardId=101、awardRuleValue="1,100"。后续应从
+ *               strategy_rule 读取实际配置。
  * @Author: Charlie
  * @Date: 2026/7/26 17:38
  * @Version: 1.0
@@ -19,6 +23,7 @@ public class RuleLuckAwardLogicTreeNode implements ILogicTreeNode {
 
     @Override
     public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId) {
+        // TODO: 兜底奖品 ID 与规则值应从配置读取；当前硬编码
         return DefaultTreeFactory.TreeActionEntity.builder()
                 .ruleLogicCheckType(RuleLogicCheckTypeVO.TAKE_OVER)
                 .strategyAwardData(DefaultTreeFactory.StrategyAwardData.builder()

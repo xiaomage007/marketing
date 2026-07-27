@@ -37,6 +37,6 @@ public class RuleTreeNodeLineVO {
     /**
      * 限定值（到下个节点）
      */
-    private RuleLogicCheckTypeVO ruleLogicCheckType;
+    private RuleLogicCheckTypeVO ruleLimitValue;
 
 }
