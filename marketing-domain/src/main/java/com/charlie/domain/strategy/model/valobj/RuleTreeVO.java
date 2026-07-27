@@ -1,6 +1,5 @@
 package com.charlie.domain.strategy.model.valobj;
 
-import com.sun.tools.javac.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
