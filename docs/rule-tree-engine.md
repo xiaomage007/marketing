@@ -29,7 +29,7 @@ rule.tree/
 | 接口 | `ILogicTreeNode` | 节点统一契约，定义 `logic(userId, strategyId, awardId)` |
 | 接口 | `IDecisionTreeEngine` | 引擎契约，定义 `process(...)` |
 | 实现 | `DecisionTreeEngine` | 决策树主循环：取节点 → 执行 → 选下一节点 → 直到叶子 |
-| 工厂 | `DefaultTreeFactory` | Spring 注入节点 map，承载 `TreeActionEntity`/`StrategyAwardData` 两个静态 DTO |
+| 工厂 | `DefaultTreeFactory` | Spring 注入节点 map，提供 `openLogicTree()` 创建引擎，承载 `TreeActionEntity`/`StrategyAwardData` 两个静态 DTO |
 | 节点 | `RuleLockLogicTreeNode` | 次数锁：达到阈值放行，否则接管 |
 | 节点 | `RuleStockLogicTreeNode` | 库存扣减：扣减成功放行，否则接管 |
 | 节点 | `RuleLuckAwardLogicTreeNode` | 兜底：用固定奖品覆盖上游 awardId |
@@ -41,7 +41,7 @@ DefaultTreeFactory (@Service)
    └─ Spring 注入 Map<String, ILogicTreeNode> logicTreeNodeGroup
         key   = bean 名（rule_lock / rule_stock / rule_luck_award）
         value = 节点实现
-   └─ 持有静态内部类：TreeActionEntity / StrategyAwardData（DTO）
+   └─ openLogicTree(ruleTreeVO) → DecisionTreeEngine
 
 DecisionTreeEngine (构造时传入 logicTreeNodeGroup + RuleTreeVO)
    └─ process() 循环：
@@ -120,49 +120,147 @@ public boolean decisionLogic(String matterValue, RuleTreeNodeLineVO nodeLine)
 
 按 `RuleLimitTypeVO` 分派，当前只实现 `EQUAL`：`matterValue.equals(nodeLine.getRuleLimitValue().getCode())`。`GT/LT/GE/LE/ENUM` 预留扩展位。
 
-## 五、执行示例
+### 4.6 `DefaultTreeFactory.openLogicTree`
 
-### 5.1 规则树配置
-
-```
-treeId            = 100001001
-treeName          = 抽奖后置规则树
-treeRootRuleNode  = rule_lock
-
-treeNodeMap:
-  rule_lock        ruleKey=rule_lock
-                   出边: [ (ALLOW     -> rule_stock),
-                          (TAKE_OVER  -> rule_luck_award) ]
-  rule_stock       ruleKey=rule_stock
-                   出边: [ (ALLOW     -> rule_luck_award),
-                          (TAKE_OVER  -> rule_luck_award) ]
-  rule_luck_award  ruleKey=rule_luck_award
-                   出边: []                         ← 叶子节点
-
-每条出边 RuleLimitType=EQUAL，RuleLimitValue=ALLOW("0000") 或 TAKE_OVER("0001")
+```java
+public IDecisionTreeEngine openLogicTree(RuleTreeVO ruleTreeVO) {
+    return new DecisionTreeEngine(logicTreeNodeGroup, ruleTreeVO);
+}
 ```
 
-### 5.2 调用 `engine.process("user001", 100001L, 108)`
+工厂方法，创建决策树引擎实例。已实现，可直接使用。
 
-**第 1 轮：`rule_lock`**
-- `logicTreeNodeGroup.get("rule_lock")` → `RuleLockLogicTreeNode`
-- `logic("user001", 100001L, 108)` → `TreeActionEntity{ ruleLogicCheckType=ALLOW, strategyAwardData=null }`
-- `nextNode("0000", [ALLOW->rule_stock, TAKE_OVER->rule_luck_award])`
-  - 第 1 条 `"0000".equals("0000")` → true → 返回 `rule_stock`
-- 日志：`决策树引擎【抽奖后置规则树】treeId:100001001 node:rule_lock code:0000`
+## 五、执行示例（来自 LogicTreeTest）
 
-**第 2 轮：`rule_stock`**
-- `logic(...)` → `TreeActionEntity{ ruleLogicCheckType=TAKE_OVER, strategyAwardData=null }`
-- `nextNode("0001", [...])` → 匹配到 `rule_luck_award`
-- 日志：`... node:rule_stock code:0001`
+### 5.1 规则树拓扑结构
 
-**第 3 轮：`rule_luck_award`**
-- `logic(...)` → `TreeActionEntity{ ruleLogicCheckType=TAKE_OVER, strategyAwardData={awardId=101, awardRuleValue="1,100"} }`
-- `nextNode("0001", [])` → 出边为空 → 返回 `null`
-- 循环退出
+```
+                    ┌─────────────┐
+                    │  rule_lock  │  (根节点：次数锁)
+                    └──────┬──────┘
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+         TAKE_OVER                   ALLOW
+              │                         │
+              ▼                         ▼
+    ┌─────────────────┐      ┌─────────────────┐
+    │ rule_luck_award │      │   rule_stock    │
+    │   (兜底奖励)    │      │   (库存扣减)    │
+    └─────────────────┘      └────────┬────────┘
+                                        │
+                                   TAKE_OVER
+                                        │
+                                        ▼
+                              ┌─────────────────┐
+                              │ rule_luck_award │
+                              │   (兜底奖励)    │
+                              └─────────────────┘
+```
 
-**返回**：`StrategyAwardData{ awardId=101, awardRuleValue="1,100" }`
-（原 awardId=108 被兜底节点覆盖为 101）
+### 5.2 规则树配置（代码构建方式）
+
+参考 `LogicTreeTest.test_tree_rule()`：
+
+```java
+// 1. 构建根节点 rule_lock
+RuleTreeNodeVO rule_lock = RuleTreeNodeVO.builder()
+    .treeId(100000001)
+    .ruleKey("rule_lock")
+    .ruleDesc("限定用户已完成N次抽奖后解锁")
+    .ruleValue("1")
+    .treeNodeLineVOList(List.of(
+        // TAKE_OVER -> rule_luck_award（左分支）
+        RuleTreeNodeLineVO.builder()
+            .ruleNodeFrom("rule_lock")
+            .ruleNodeTo("rule_luck_award")
+            .ruleLimitType(RuleLimitTypeVO.EQUAL)
+            .ruleLimitValue(RuleLogicCheckTypeVO.TAKE_OVER)
+            .build(),
+        // ALLOW -> rule_stock（右分支）
+        RuleTreeNodeLineVO.builder()
+            .ruleNodeFrom("rule_lock")
+            .ruleNodeTo("rule_stock")
+            .ruleLimitType(RuleLimitTypeVO.EQUAL)
+            .ruleLimitValue(RuleLogicCheckTypeVO.ALLOW)
+            .build()
+    ))
+    .build();
+
+// 2. 构建叶子节点 rule_luck_award
+RuleTreeNodeVO rule_luck_award = RuleTreeNodeVO.builder()
+    .treeId(100000001)
+    .ruleKey("rule_luck_award")
+    .ruleDesc("兜底奖励节点")
+    .ruleValue("1")
+    .treeNodeLineVOList(null)  // 无出边，叶子
+    .build();
+
+// 3. 构建中间节点 rule_stock
+RuleTreeNodeVO rule_stock = RuleTreeNodeVO.builder()
+    .treeId(100000001)
+    .ruleKey("rule_stock")
+    .ruleDesc("库存处理规则")
+    .ruleValue(null)
+    .treeNodeLineVOList(List.of(
+        // TAKE_OVER -> rule_luck_award
+        RuleTreeNodeLineVO.builder()
+            .ruleNodeFrom("rule_stock")  // 注意：这里是 rule_stock，不是 rule_lock
+            .ruleNodeTo("rule_luck_award")
+            .ruleLimitType(RuleLimitTypeVO.EQUAL)
+            .ruleLimitValue(RuleLogicCheckTypeVO.TAKE_OVER)
+            .build()
+    ))
+    .build();
+
+// 4. 组装整棵树
+RuleTreeVO ruleTreeVO = RuleTreeVO.builder()
+    .treeId(100000001)
+    .treeName("决策树规则；增加dall-e-3画图模型")
+    .treeDesc("决策树规则；增加dall-e-3画图模型")
+    .treeRootRuleNode("rule_lock")
+    .treeNodeMap(Map.of(
+        "rule_lock", rule_lock,
+        "rule_stock", rule_stock,
+        "rule_luck_award", rule_luck_award
+    ))
+    .build();
+```
+
+### 5.3 执行路径分析
+
+#### 场景 A：用户未达到次数锁阈值 → 走左分支
+
+```
+调用：engine.process("xiaomage", 100001L, 100)
+
+第 1 轮：rule_lock
+  └─ logic() 返回 TAKE_OVER（未解锁）
+  └─ nextNode("0001") 匹配到 rule_luck_award
+第 2 轮：rule_luck_award
+  └─ logic() 返回 TAKE_OVER，strategyAwardData={awardId=101, awardRuleValue="1,100"}
+  └─ 无出边，循环结束
+
+返回：StrategyAwardData{awardId=101, awardRuleValue="1,100"}
+（原 awardId=100 被兜底覆盖）
+```
+
+#### 场景 B：用户已解锁 + 库存充足 → 走全路径（当前占位实现不会走到）
+
+```
+第 1 轮：rule_lock → ALLOW → rule_stock
+第 2 轮：rule_stock → ALLOW → 无出边？（需要配置 ALLOW 分支）
+```
+
+#### 场景 C：用户已解锁 + 库存不足 → 走右分支再兜底（当前占位实现）
+
+```
+第 1 轮：rule_lock → ALLOW（当前占位固定返回）→ rule_stock
+第 2 轮：rule_stock → TAKE_OVER（当前占位固定返回）→ rule_luck_award
+第 3 轮：rule_luck_award → 叶子
+
+返回：StrategyAwardData{awardId=101, awardRuleValue="1,100"}
+```
 
 ## 六、设计要点
 
@@ -172,6 +270,7 @@ treeNodeMap:
 4. **awardId 流转可被覆盖**：兜底节点用 `StrategyAwardData` 覆盖原 awardId，是「接管」语义的落地。
 5. **配置异常硬失败**：有出边但都不匹配 → `RuntimeException`，避免静默走错路径。
 6. **DTO 与节点解耦**：`TreeActionEntity`/`StrategyAwardData` 定义在 `DefaultTreeFactory` 内部，节点只依赖接口契约，不感知引擎实现。
+7. **出边配置顺序即优先级**：`nextNode` 按列表顺序短路匹配，第一条满足条件的边立即生效。
 
 ## 七、扩展指南
 
@@ -209,16 +308,9 @@ public class RuleXxxLogicTreeNode implements ILogicTreeNode {
 
 ### 7.3 接入抽奖流程
 
-当前 `DefaultTreeFactory` 只持有节点 map，尚未提供 `openLogicTree(ruleTreeVO)` 工厂方法。接入时：
+`DefaultTreeFactory.openLogicTree()` 已实现，接入步骤：
 
-1. 在 `DefaultTreeFactory` 增加方法：
-
-   ```java
-   public IDecisionTreeEngine openLogicTree(RuleTreeVO ruleTreeVO) {
-       return new DecisionTreeEngine(logicTreeNodeGroup, ruleTreeVO);
-   }
-   ```
-
+1. 从 `strategy_rule` 表读取树配置，组装成 `RuleTreeVO`
 2. 在 `AbstractRaffleStrategy` 抽奖后置规则阶段调用：
 
    ```java
@@ -226,17 +318,76 @@ public class RuleXxxLogicTreeNode implements ILogicTreeNode {
    DefaultTreeFactory.StrategyAwardData data = engine.process(userId, strategyId, awardId);
    ```
 
-3. `RuleTreeVO` 的装配：从 `strategy_rule` 表读取树配置，组装成 `RuleTreeVO` 后传入
-
 ## 八、当前实现状态与 TODO
 
-| 节点 | 状态 | TODO |
+### 8.1 实现状态总览
+
+| 组件 | 状态 | 说明 |
 |---|---|---|
-| `RuleLockLogicTreeNode` | 占位，固定返回 ALLOW | 注入仓储，按用户累计次数与 `ruleValue` 阈值比较 |
-| `RuleStockLogicTreeNode` | 占位，固定返回 TAKE_OVER，无数据 | 注入仓储，对 awardId 执行 Redis DECR，按结果设置校验类型 |
-| `RuleLuckAwardLogicTreeNode` | 占位，硬编码 awardId=101 | 从 `strategy_rule` 读取实际兜底奖品配置 |
-| `DefaultTreeFactory` | 未提供 `openLogicTree` | 补工厂方法，接入抽奖流程 |
-| `DecisionTreeEngine` | 实现完整 | 无 |
+| `DefaultTreeFactory` | ✅ 已完成 | `openLogicTree()` 工厂方法已实现 |
+| `DecisionTreeEngine` | ✅ 已完成 | 主循环、路由匹配逻辑完整 |
+| `RuleLockLogicTreeNode` | ⚠️ 占位实现 | 固定返回 `ALLOW`，未读取用户次数 |
+| `RuleStockLogicTreeNode` | ⚠️ 占位实现 | 固定返回 `TAKE_OVER`，未扣减库存 |
+| `RuleLuckAwardLogicTreeNode` | ⚠️ 占位实现 | 硬编码 `awardId=101`，未读配置 |
+
+### 8.2 TODO 清单
+
+| 优先级 | 任务 | 说明 | 涉及文件 |
+|---|---|---|---|
+| P0 | 实现 `RuleLockLogicTreeNode` 业务逻辑 | 注入仓储，查询用户累计抽奖次数，与 `ruleValue` 阈值比较：≥阈值返回 `ALLOW`，否则返回 `TAKE_OVER` | `RuleLockLogicTreeNode.java` |
+| P0 | 实现 `RuleStockLogicTreeNode` 业务逻辑 | 注入仓储，对 `awardId` 执行 Redis 库存扣减（DECR）：扣减成功返回 `ALLOW`，库存不足返回 `TAKE_OVER` | `RuleStockLogicTreeNode.java` |
+| P0 | 实现 `RuleLuckAwardLogicTreeNode` 业务逻辑 | 从 `strategy_rule` 表读取当前策略的兜底奖品配置，动态填充 `awardId` 与 `awardRuleValue` | `RuleLuckAwardLogicTreeNode.java` |
+| P1 | 为规则树配置增加数据库表结构 | 在 `strategy_rule` 表中增加字段或新增关联表，支持持久化 `RuleTreeVO` 树结构（节点 + 出边） | `marketing.sql` |
+| P1 | 在 `IStrategyRepository` 增加规则树装配方法 | 从数据库读取配置并组装 `RuleTreeVO` | `IStrategyRepository.java` + 实现 |
+| P2 | 接入 `AbstractRaffleStrategy` 抽奖后置流程 | 在抽奖后调用决策树引擎，根据结果决定最终奖品 | `AbstractRaffleStrategy.java` |
+
+### 8.3 节点实现细节 TODO
+
+#### RuleLockLogicTreeNode
+
+```java
+// 当前占位
+return DefaultTreeFactory.TreeActionEntity.builder()
+    .ruleLogicCheckType(RuleLogicCheckTypeVO.ALLOW)
+    .build();
+
+// 期望实现伪代码
+// 1. 从 ruleValue 解析阈值（如 "1" → 1次）
+// 2. 查询用户 userId 在 strategyId 下的累计抽奖次数
+// 3. if (count >= threshold) → ALLOW, else → TAKE_OVER
+```
+
+#### RuleStockLogicTreeNode
+
+```java
+// 当前占位
+return DefaultTreeFactory.TreeActionEntity.builder()
+    .ruleLogicCheckType(RuleLogicCheckTypeVO.TAKE_OVER)
+    .build();
+
+// 期望实现伪代码
+// 1. 调用仓储对 awardId 执行 Redis DECR（带判定）
+// 2. if (扣减成功) → ALLOW, else → TAKE_OVER
+// 3. 注意：库存扣减节点通常不填充 strategyAwardData，由后续节点处理
+```
+
+#### RuleLuckAwardLogicTreeNode
+
+```java
+// 当前硬编码
+return DefaultTreeFactory.TreeActionEntity.builder()
+    .ruleLogicCheckType(RuleLogicCheckTypeVO.TAKE_OVER)
+    .strategyAwardData(DefaultTreeFactory.StrategyAwardData.builder()
+        .awardId(101)
+        .awardRuleValue("1,100")
+        .build())
+    .build();
+
+// 期望实现伪代码
+// 1. 从 strategy_rule 读取 strategyId + ruleKey="rule_luck_award" 的配置
+// 2. 解析出 awardId 和 awardRuleValue
+// 3. 填充到 strategyAwardData 返回
+```
 
 ## 九、命名设计说明：为什么是 `ILogicTreeNode`
 
@@ -298,8 +449,18 @@ RuleTreeNodeLineVO      连线数据：from -> to + 限定条件
 
 ## 十、相关文件索引
 
+- 测试用例：`marketing-app/src/test/java/com/charlie/test/domain/LogicTreeTest.java`
 - 引擎实现：`marketing-domain/src/main/java/com/charlie/domain/strategy/service/rule/tree/factory/engine/impl/DecisionTreeEngine.java`
 - 节点接口：`marketing-domain/src/main/java/com/charlie/domain/strategy/service/rule/tree/ILogicTreeNode.java`
 - 工厂：`marketing-domain/src/main/java/com/charlie/domain/strategy/service/rule/tree/factory/DefaultTreeFactory.java`
-- 值对象：`marketing-domain/src/main/java/com/charlie/domain/strategy/model/valobj/RuleTreeVO.java`、`RuleTreeNodeVO.java`、`RuleTreeNodeLineVO.java`、`RuleLimitTypeVO.java`、`RuleLogicCheckTypeVO.java`
+- 节点实现：
+  - `RuleLockLogicTreeNode.java`
+  - `RuleStockLogicTreeNode.java`
+  - `RuleLuckAwardLogicTreeNode.java`
+- 值对象：`marketing-domain/src/main/java/com/charlie/domain/strategy/model/valobj/` 下
+  - `RuleTreeVO.java`
+  - `RuleTreeNodeVO.java`
+  - `RuleTreeNodeLineVO.java`
+  - `RuleLimitTypeVO.java`
+  - `RuleLogicCheckTypeVO.java`
 - 数据库：`docs/dev-ops/mysql/sql/marketing.sql`（`strategy_rule` 表）
