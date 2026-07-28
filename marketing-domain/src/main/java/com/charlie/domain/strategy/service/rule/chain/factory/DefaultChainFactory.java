@@ -3,6 +3,7 @@ package com.charlie.domain.strategy.service.rule.chain.factory;
 import com.charlie.domain.strategy.model.entity.StrategyEntity;
 import com.charlie.domain.strategy.repository.IStrategyRepository;
 import com.charlie.domain.strategy.service.rule.chain.ILogicChain;
+import lombok.*;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -54,6 +55,31 @@ public class DefaultChainFactory {
 
         // 7. 返回链头,调用方从头节点开始调 logic() 即可沿责任链向后传递
         return logicChain;
+
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class StrategyAwardVO {
+        /** 抽奖奖品ID - 内部流转使用 */
+        private Integer awardId;
+        /**  */
+        private String logicModel;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public enum LogicModel {
+
+        RULE_DEFAULT("rule_default", "默认抽奖"),
+        RULE_BLACKLIST("rule_blacklist", "黑名单抽奖"),
+        RULE_WEIGHT("rule_weight", "权重规则"),
+        ;
+
+        private final String code;
+        private final String info;
 
     }
 }
