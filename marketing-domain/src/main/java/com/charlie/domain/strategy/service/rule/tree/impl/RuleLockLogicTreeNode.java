@@ -22,7 +22,6 @@ public class RuleLockLogicTreeNode implements ILogicTreeNode {
 
     @Override
     public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId) {
-        // TODO: 查询用户抽奖次数并与 ruleValue 阈值比较；当前占位直接放行
         return DefaultTreeFactory.TreeActionEntity.builder()
                 .ruleLogicCheckType(RuleLogicCheckTypeVO.ALLOW)
                 .build();

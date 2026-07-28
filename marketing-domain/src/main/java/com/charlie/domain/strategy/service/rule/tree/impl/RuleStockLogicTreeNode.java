@@ -22,7 +22,6 @@ import org.springframework.stereotype.Component;
 public class RuleStockLogicTreeNode implements ILogicTreeNode {
     @Override
     public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId) {
-        // TODO: 调用仓储扣减 awardId 库存，按结果返回 ALLOW/TAKE_OVER；当前占位直接接管
         return DefaultTreeFactory.TreeActionEntity.builder()
                 .ruleLogicCheckType(RuleLogicCheckTypeVO.TAKE_OVER)
                 .build();
