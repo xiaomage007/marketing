@@ -23,7 +23,6 @@ public class RuleLuckAwardLogicTreeNode implements ILogicTreeNode {
 
     @Override
     public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId) {
-        // TODO: 兜底奖品 ID 与规则值应从配置读取；当前硬编码
         return DefaultTreeFactory.TreeActionEntity.builder()
                 .ruleLogicCheckType(RuleLogicCheckTypeVO.TAKE_OVER)
                 .strategyAwardVO(DefaultTreeFactory.StrategyAwardVO.builder()
