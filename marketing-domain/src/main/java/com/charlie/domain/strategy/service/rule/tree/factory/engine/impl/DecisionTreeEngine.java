@@ -44,11 +44,11 @@ public class DecisionTreeEngine implements IDecisionTreeEngine {
      * @param userId     用户ID（透传给决策节点用于业务判断，例如黑名单校验、积分权重等）
      * @param strategyId 策略ID（透传给决策节点）
      * @param awardId    上游已选出的奖品ID（透传给决策节点，部分规则会基于此修改最终奖品）
-     * @return 最后一次决策产出的 {@link DefaultTreeFactory.StrategyAwardData}，含 awardId 与 awardRuleValue
+     * @return 最后一次决策产出的 {@link DefaultTreeFactory.StrategyAwardVO}，含 awardId 与 awardRuleValue
      */
     @Override
-    public DefaultTreeFactory.StrategyAwardData process(String userId, Long strategyId, Integer awardId) {
-        DefaultTreeFactory.StrategyAwardData strategyAwardData = null;
+    public DefaultTreeFactory.StrategyAwardVO process(String userId, Long strategyId, Integer awardId) {
+        DefaultTreeFactory.StrategyAwardVO strategyAwardData = null;
 
         // 1. 获取规则树基础信息：根节点 key + 节点映射表（key=规则节点 key，value=节点详情）
         String nextNode = ruleTreeVO.getTreeRootRuleNode();
@@ -66,7 +66,7 @@ public class DecisionTreeEngine implements IDecisionTreeEngine {
             //     ruleLogicCheckTypeVO.getCode() 取值："0000"=ALLOW 放行，"0001"=TAKE_OVER 接管
             DefaultTreeFactory.TreeActionEntity logicEntity = logicTreeNode.logic(userId, strategyId, awardId);
             RuleLogicCheckTypeVO ruleLogicCheckTypeVO = logicEntity.getRuleLogicCheckType();
-            strategyAwardData = logicEntity.getStrategyAwardData();
+            strategyAwardData = logicEntity.getStrategyAwardVO();
             log.info("决策树引擎【{}】treeId:{} node:{} code:{}", ruleTreeVO.getTreeName(), ruleTreeVO.getTreeId(), nextNode, ruleLogicCheckTypeVO.getCode());
 
             // 3.3 根据当前节点的决策结果 code，从节点的出边列表中选出下一个节点；无出边则返回 null 结束迭代

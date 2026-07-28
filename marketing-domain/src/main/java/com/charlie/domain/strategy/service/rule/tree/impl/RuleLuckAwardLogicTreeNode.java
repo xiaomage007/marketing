@@ -26,7 +26,7 @@ public class RuleLuckAwardLogicTreeNode implements ILogicTreeNode {
         // TODO: 兜底奖品 ID 与规则值应从配置读取；当前硬编码
         return DefaultTreeFactory.TreeActionEntity.builder()
                 .ruleLogicCheckType(RuleLogicCheckTypeVO.TAKE_OVER)
-                .strategyAwardData(DefaultTreeFactory.StrategyAwardData.builder()
+                .strategyAwardVO(DefaultTreeFactory.StrategyAwardVO.builder()
                         .awardId(101)
                         .awardRuleValue("1,100")
                         .build())

@@ -55,7 +55,7 @@ public class DefaultTreeFactory {
         /** 节点校验类型：ALLOW 放行 / TAKE_OVER 接管，决定决策树下一步走向 */
         private RuleLogicCheckTypeVO ruleLogicCheckType;
         /** 节点产出的奖品数据；非叶子节点可不填，最终返回值以最后一次填充的为准 */
-        private StrategyAwardData strategyAwardData;
+        private StrategyAwardVO strategyAwardVO;
     }
 
     /**
@@ -65,7 +65,7 @@ public class DefaultTreeFactory {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class StrategyAwardData {
+    public static class StrategyAwardVO {
         /** 抽奖奖品ID - 内部流转使用 */
         private Integer awardId;
         /** 抽奖奖品规则 */
