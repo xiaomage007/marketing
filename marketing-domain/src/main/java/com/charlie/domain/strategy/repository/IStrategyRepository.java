@@ -43,4 +43,6 @@ public interface IStrategyRepository {
      * @return 树结构信息
      */
     RuleTreeVO queryRuleTreeVOByTreeId(String treeId);
+
+    void cacheStrategyAwardCount(String cacheKey, Integer awardCount);
 }
