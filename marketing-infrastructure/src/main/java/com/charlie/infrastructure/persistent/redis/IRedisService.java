@@ -253,4 +253,6 @@ public interface IRedisService {
      * @param value 值
      */
     void setAtomicLong(String key, long value);
+
+    Boolean setNx(String lockKey);
 }

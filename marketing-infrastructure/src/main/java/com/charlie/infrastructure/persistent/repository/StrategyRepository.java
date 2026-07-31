@@ -9,6 +9,9 @@ import com.charlie.infrastructure.persistent.dao.*;
 import com.charlie.infrastructure.persistent.po.*;
 import com.charlie.infrastructure.persistent.redis.IRedisService;
 import com.charlie.types.common.Constants;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBlockingQueue;
+import org.redisson.api.RDelayedQueue;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
@@ -17,12 +20,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @description: 策略服务仓储实现
  * @author: Charlie
  * @date: 2026/7/13 10:04
  */
+@Slf4j
 @Repository
 public class StrategyRepository implements IStrategyRepository {
 
@@ -231,9 +236,67 @@ public class StrategyRepository implements IStrategyRepository {
     }
 
     @Override
+    public Boolean subtractionAwardStock(String cacheKey) {
+        long surplus = redisService.decr(cacheKey);
+        if (surplus < 0) {
+            // 库存小于0，恢复为0个
+            redisService.setValue(cacheKey, 0);
+            return false;
+        }
+        // 1. 按照cacheKey decr 后的值，如 99、98、97 和 key 组成为库存锁的key进行使用。
+        // 2. 加锁为了兜底，如果后续有恢复库存，手动处理等，也不会超卖。因为所有的可用库存key，都被加锁了。
+        String lockKey = cacheKey + Constants.UNDERLINE + surplus;
+        Boolean lock = redisService.setNx(lockKey);
+        if (!lock) {
+            log.info("策略奖品库存加锁失败 {}", lockKey);
+        }
+        return lock;
+    }
+
+    @Override
     public void cacheStrategyAwardCount(String cacheKey, Integer awardCount) {
         if (redisService.isExists(cacheKey)) return;
         redisService.setAtomicLong(cacheKey, awardCount);
     }
 
+    /**
+     * 将「策略奖品库存扣减事件」投递到延迟队列,由消费者异步落库,实现 Redis 预扣 + DB 异步写入的最终一致。
+     * <p>
+     * 业务流程:
+     * <ol>
+     *   <li>抽奖命中奖品时,先在 Redis 中原子扣减库存(参见 {@link #subtractionAwardStock(String)}),保证不超卖</li>
+     *   <li>同时把"扣减记录"延迟 3 秒投递到本队列</li>
+     *   <li>消费者线程异步消费,把扣减量 batch 合并后写回 MySQL 的 {@code strategy_award.award_count_surplus}</li>
+     * </ol>
+     * <p>
+     * <b>为什么延迟 3 秒?</b> 给同批次的多次扣减一个"窗口期",消费者可以批量合并写入,减少 DB 写压力(典型的高频写削峰)。
+     *
+     * @param strategyAwardStockKeyVO 库存扣减事件,包含 strategyId / awardId / 扣减次数 等信息
+     */
+    @Override
+    public void awardStockConsumeSendQueue(StrategyAwardStockKeyVO strategyAwardStockKeyVO) {
+        // 1. 库存消费队列在 Redis 中的 key,所有策略的扣减事件都进同一个队列,由消费者按 strategyId+awardId 聚合
+        String cacheKey = Constants.RedisKey.STRATEGY_AWARD_COUNT_QUERY_KEY;
+        // 2. 获取底层阻塞队列(真正存放元素的容器,对应 Redis List 结构);
+        //    必须先有 BlockingQueue 才能构造 DelayedQueue——延迟队列只是一个"调度器",到期后元素会被搬运到 BlockingQueue
+        RBlockingQueue<StrategyAwardStockKeyVO> blockingQueue = redisService.getBlockingQueue(cacheKey);
+        // 3. 基于阻塞队列构造延迟队列;Redisson 内部用 zset 记录到期时间,后台轮询到点后自动迁移到 BlockingQueue
+        RDelayedQueue<StrategyAwardStockKeyVO> delayedQueue = redisService.getDelayedQueue(blockingQueue);
+        // 4. 投递扣减事件,延迟 3 秒到期;到期后该 VO 会出现在 blockingQueue 中,等待 {@code AwardStockConsumeJob} 等消费者取走
+        delayedQueue.offer(strategyAwardStockKeyVO, 3, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public StrategyAwardStockKeyVO takeQueueValue() {
+        String cacheKey = Constants.RedisKey.STRATEGY_AWARD_COUNT_QUERY_KEY;
+        RBlockingQueue<StrategyAwardStockKeyVO> destinationQueue = redisService.getBlockingQueue(cacheKey);
+        return destinationQueue.poll();    }
+
+    @Override
+    public void updateStrategyAwardStock(Long strategyId, Integer awardId) {
+        StrategyAward strategyAward = new StrategyAward();
+        strategyAward.setStrategyId(strategyId);
+        strategyAward.setAwardId(awardId);
+        strategyAwardDao.updateStrategyAwardStock(strategyAward);
+    }
 }

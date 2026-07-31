@@ -2,6 +2,7 @@ package com.charlie.domain.strategy.service.raffle;
 
 import com.charlie.domain.strategy.model.valobj.RuleTreeVO;
 import com.charlie.domain.strategy.model.valobj.StrategyAwardRuleModelVO;
+import com.charlie.domain.strategy.model.valobj.StrategyAwardStockKeyVO;
 import com.charlie.domain.strategy.repository.IStrategyRepository;
 import com.charlie.domain.strategy.service.AbstractRaffleStrategy;
 import com.charlie.domain.strategy.service.armory.IStrategyDispatch;
@@ -45,4 +46,12 @@ public class DefaultRaffleStrategy extends AbstractRaffleStrategy {
         return engine.process(userId, strategyId, awardId);
     }
 
+    @Override
+    public StrategyAwardStockKeyVO takeQueueValue() throws InterruptedException {
+        return repository.takeQueueValue();    }
+
+    @Override
+    public void updateStrategyAwardStock(Long strategyId, Integer awardId) {
+        repository.updateStrategyAwardStock(strategyId, awardId);
+    }
 }

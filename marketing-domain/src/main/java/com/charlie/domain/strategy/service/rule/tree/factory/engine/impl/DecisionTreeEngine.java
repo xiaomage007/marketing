@@ -40,15 +40,23 @@ public class DecisionTreeEngine implements IDecisionTreeEngine {
      *   根节点 ruleKey -> ILogicTreeNode.logic() -> 得到 RuleLogicCheckTypeVO(ALLOW/TAKE_OVER)
      *        -> nextNode() 按 code 匹配出边 -> 跳到下一个节点 -> 循环直至 nextNode == null
      * </pre>
+     * <p>
+     * <b>awardData 采纳规则（关键）</b>：仅当节点返回 <b>TAKE_OVER 且携带非空 awardData</b> 时，引擎才采纳本次 awardData 并<b>立即 break</b>
+     * （"锁奖"语义——节点已经决定最终奖品，引擎不再 walk 下游，包括兜底节点）。
+     * <ul>
+     *   <li>TAKE_OVER + awardData 非空 → 锁奖，立刻返回，不再走 nextNode（避免被下游兜底覆盖）</li>
+     *   <li>TAKE_OVER + awardData 为空 → 继续 walk（通常由下游兜底节点覆盖）</li>
+     *   <li>ALLOW（无论是否携带 awardData）→ 不采纳 awardData，继续走 nextNode</li>
+     * </ul>
      *
      * @param userId     用户ID（透传给决策节点用于业务判断，例如黑名单校验、积分权重等）
      * @param strategyId 策略ID（透传给决策节点）
      * @param awardId    上游已选出的奖品ID（透传给决策节点，部分规则会基于此修改最终奖品）
-     * @return 最后一次决策产出的 {@link DefaultTreeFactory.StrategyAwardVO}，含 awardId 与 awardRuleValue
+     * @return 最后一次锁奖产出的 {@link DefaultTreeFactory.StrategyAwardVO}，含 awardId 与 awardRuleValue
      */
     @Override
     public DefaultTreeFactory.StrategyAwardVO process(String userId, Long strategyId, Integer awardId) {
-        DefaultTreeFactory.StrategyAwardVO strategyAwardData = null;
+        DefaultTreeFactory.StrategyAwardVO strategyAwardVO = null;
 
         // 1. 获取规则树基础信息：根节点 key + 节点映射表（key=规则节点 key，value=节点详情）
         String nextNode = ruleTreeVO.getTreeRootRuleNode();
@@ -61,21 +69,31 @@ public class DecisionTreeEngine implements IDecisionTreeEngine {
         while (null != nextNode) {
             // 3.1 根据 ruleKey 从节点组中取出对应的决策节点实现（ILogicTreeNode）
             ILogicTreeNode logicTreeNode = logicTreeNodeGroup.get(ruleTreeNode.getRuleKey());
-
+            String ruleValue = ruleTreeNode.getRuleValue();
             // 3.2 决策节点执行业务逻辑，得到动作实体（校验类型 + 抽奖数据）
             //     ruleLogicCheckTypeVO.getCode() 取值："0000"=ALLOW 放行，"0001"=TAKE_OVER 接管
-            DefaultTreeFactory.TreeActionEntity logicEntity = logicTreeNode.logic(userId, strategyId, awardId);
+            DefaultTreeFactory.TreeActionEntity logicEntity = logicTreeNode.logic(userId, strategyId, awardId, ruleValue);
             RuleLogicCheckTypeVO ruleLogicCheckTypeVO = logicEntity.getRuleLogicCheckType();
-            strategyAwardData = logicEntity.getStrategyAwardVO();
             log.info("决策树引擎【{}】treeId:{} node:{} code:{}", ruleTreeVO.getTreeName(), ruleTreeVO.getTreeId(), nextNode, ruleLogicCheckTypeVO.getCode());
 
-            // 3.3 根据当前节点的决策结果 code，从节点的出边列表中选出下一个节点；无出边则返回 null 结束迭代
+            // 3.3 锁奖短路：节点 TAKE_OVER 且携带非空 awardData，表示"已决定最终奖品"
+            //     ——采纳本次 awardData 并立即退出循环，不再 walk 下游节点（包括兜底），
+            //     避免"扣减成功→rule_stock 已决定奖→再被 rule_luck_award 覆盖"这类串台。
+            boolean lockAward = RuleLogicCheckTypeVO.TAKE_OVER.equals(ruleLogicCheckTypeVO)
+                    && logicEntity.getStrategyAwardVO() != null;
+            if (lockAward) {
+                strategyAwardVO = logicEntity.getStrategyAwardVO();
+                break;
+            }
+
+            // 3.4 非锁奖路径：按当前节点的决策结果 code，从出边列表中选出下一个节点；无出边则返回 null 结束迭代
+            //     ALLOW 路径即便节点塞了 awardData 也不采纳——保留上游 awardId 不变，继续走下游
             nextNode = nextNode(ruleLogicCheckTypeVO.getCode(), ruleTreeNode.getTreeNodeLineVOList());
             ruleTreeNode = treeNodeMap.get(nextNode);
         }
 
-        // 4. 返回最后一次决策产生的奖品数据（含 awardId 与 awardRuleValue）
-        return strategyAwardData;
+        // 4. 返回最后一次锁奖产出的奖品数据（含 awardId 与 awardRuleValue）
+        return strategyAwardVO;
     }
 
     /**
