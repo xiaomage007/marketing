@@ -67,27 +67,17 @@ public class DecisionTreeEngine implements IDecisionTreeEngine {
 
         // 3. 沿决策树迭代：当前节点 -> 计算 -> 选下一节点，直到无后续节点
         while (null != nextNode) {
-            // 3.1 根据 ruleKey 从节点组中取出对应的决策节点实现（ILogicTreeNode）
+            // 获取决策节点
             ILogicTreeNode logicTreeNode = logicTreeNodeGroup.get(ruleTreeNode.getRuleKey());
             String ruleValue = ruleTreeNode.getRuleValue();
-            // 3.2 决策节点执行业务逻辑，得到动作实体（校验类型 + 抽奖数据）
-            //     ruleLogicCheckTypeVO.getCode() 取值："0000"=ALLOW 放行，"0001"=TAKE_OVER 接管
+
+            // 决策节点计算
             DefaultTreeFactory.TreeActionEntity logicEntity = logicTreeNode.logic(userId, strategyId, awardId, ruleValue);
             RuleLogicCheckTypeVO ruleLogicCheckTypeVO = logicEntity.getRuleLogicCheckType();
+            strategyAwardVO = logicEntity.getStrategyAwardVO();
             log.info("决策树引擎【{}】treeId:{} node:{} code:{}", ruleTreeVO.getTreeName(), ruleTreeVO.getTreeId(), nextNode, ruleLogicCheckTypeVO.getCode());
 
-            // 3.3 锁奖短路：节点 TAKE_OVER 且携带非空 awardData，表示"已决定最终奖品"
-            //     ——采纳本次 awardData 并立即退出循环，不再 walk 下游节点（包括兜底），
-            //     避免"扣减成功→rule_stock 已决定奖→再被 rule_luck_award 覆盖"这类串台。
-            boolean lockAward = RuleLogicCheckTypeVO.TAKE_OVER.equals(ruleLogicCheckTypeVO)
-                    && logicEntity.getStrategyAwardVO() != null;
-            if (lockAward) {
-                strategyAwardVO = logicEntity.getStrategyAwardVO();
-                break;
-            }
-
-            // 3.4 非锁奖路径：按当前节点的决策结果 code，从出边列表中选出下一个节点；无出边则返回 null 结束迭代
-            //     ALLOW 路径即便节点塞了 awardData 也不采纳——保留上游 awardId 不变，继续走下游
+            // 获取下个节点
             nextNode = nextNode(ruleLogicCheckTypeVO.getCode(), ruleTreeNode.getTreeNodeLineVOList());
             ruleTreeNode = treeNodeMap.get(nextNode);
         }
@@ -117,8 +107,8 @@ public class DecisionTreeEngine implements IDecisionTreeEngine {
                 return nodeLine.getRuleNodeTo();
             }
         }
-        // 有出边但都不匹配：规则树配置不完整，直接抛异常暴露问题
-        throw new RuntimeException("决策树引擎，nextNode 计算失败，未找到可执行节点！");
+        return null;
+
     }
 
     /**
