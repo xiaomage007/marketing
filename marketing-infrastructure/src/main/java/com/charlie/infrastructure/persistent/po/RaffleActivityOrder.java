@@ -23,6 +23,11 @@ public class RaffleActivityOrder {
     private String userId;
 
     /**
+     * 商品sku
+     */
+    private Long sku;
+
+    /**
      * 活动ID
      */
     private Long activityId;
@@ -48,7 +53,22 @@ public class RaffleActivityOrder {
     private Date orderTime;
 
     /**
-     * 订单状态（not_used、used、expire）
+     * 总次数
+     */
+    private Integer totalCount;
+
+    /**
+     * 日次数
+     */
+    private Integer dayCount;
+
+    /**
+     * 月次数
+     */
+    private Integer monthCount;
+
+    /**
+     * 订单状态
      */
     private String state;
 
@@ -61,4 +81,5 @@ public class RaffleActivityOrder {
      * 更新时间
      */
     private Date updateTime;
+
 }
