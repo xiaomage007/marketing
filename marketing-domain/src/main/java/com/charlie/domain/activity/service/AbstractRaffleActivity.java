@@ -18,6 +18,7 @@ public abstract class AbstractRaffleActivity implements IRaffleOrder {
     public AbstractRaffleActivity(IActivityRepository activityRepository) {
         this.activityRepository = activityRepository;
     }
+
     @Override
     public ActivityOrderEntity createRaffleActivityOrder(ActivityShopCartEntity activityShopCartEntity) {
         // 1. 通过sku查询活动信息
@@ -29,5 +30,6 @@ public abstract class AbstractRaffleActivity implements IRaffleOrder {
 
         log.info("查询结果：{} {} {}", JSON.toJSONString(activitySkuEntity), JSON.toJSONString(activityEntity), JSON.toJSONString(activityCountEntity));
 
-        return ActivityOrderEntity.builder().build();    }
+        return ActivityOrderEntity.builder().build();
+    }
 }

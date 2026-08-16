@@ -1,4 +1,4 @@
-package com.charlie.test.domain;
+package com.charlie.test.domain.strategy;
 
 import com.charlie.domain.strategy.service.armory.IStrategyArmory;
 import com.charlie.domain.strategy.service.armory.IStrategyDispatch;

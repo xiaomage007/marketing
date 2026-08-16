@@ -1,4 +1,4 @@
-package com.charlie.test.domain;
+package com.charlie.test.domain.strategy;
 
 import com.alibaba.fastjson2.JSON;
 import com.charlie.domain.strategy.model.valobj.*;
