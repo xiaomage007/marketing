@@ -1,19 +1,19 @@
 package com.charlie.infrastructure.persistent.repository;
 
+import cn.bugstack.middleware.db.router.strategy.IDBRouterStrategy;
+import com.charlie.domain.activity.model.aggregate.CreateOrderAggregate;
 import com.charlie.domain.activity.model.entity.ActivityCountEntity;
 import com.charlie.domain.activity.model.entity.ActivityEntity;
+import com.charlie.domain.activity.model.entity.ActivityOrderEntity;
 import com.charlie.domain.activity.model.entity.ActivitySkuEntity;
 import com.charlie.domain.activity.model.valobj.ActivityStateVO;
 import com.charlie.domain.activity.repository.IActivityRepository;
-import com.charlie.infrastructure.persistent.dao.IRaffleActivityCountDao;
-import com.charlie.infrastructure.persistent.dao.IRaffleActivityDao;
-import com.charlie.infrastructure.persistent.dao.IRaffleActivitySkuDao;
-import com.charlie.infrastructure.persistent.po.RaffleActivity;
-import com.charlie.infrastructure.persistent.po.RaffleActivityCount;
-import com.charlie.infrastructure.persistent.po.RaffleActivitySku;
+import com.charlie.infrastructure.persistent.dao.*;
+import com.charlie.infrastructure.persistent.po.*;
 import com.charlie.infrastructure.persistent.redis.IRedisService;
 import com.charlie.types.common.Constants;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
 
@@ -33,6 +33,14 @@ public class ActivityRepository implements IActivityRepository {
     private IRaffleActivitySkuDao raffleActivitySkuDao;
     @Resource
     private IRaffleActivityCountDao raffleActivityCountDao;
+    @Resource
+    private IRaffleActivityOrderDao raffleActivityOrderDao;
+    @Resource
+    private IRaffleActivityAccountDao raffleActivityAccountDao;
+    @Resource
+    private TransactionTemplate transactionTemplate;
+    @Resource
+    private IDBRouterStrategy dbRouter;
 
     @Override
     public ActivitySkuEntity queryActivitySku(Long sku) {
@@ -43,11 +51,12 @@ public class ActivityRepository implements IActivityRepository {
                 .activityCountId(raffleActivitySku.getActivityCountId())
                 .stockCount(raffleActivitySku.getStockCount())
                 .stockCountSurplus(raffleActivitySku.getStockCountSurplus())
-                .build();    }
+                .build();
+    }
 
     @Override
     public ActivityEntity queryRaffleActivityByActivityId(Long activityId) {
-// 优先从缓存获取
+        // 优先从缓存获取
         String cacheKey = Constants.RedisKey.ACTIVITY_KEY + activityId;
         ActivityEntity activityEntity = redisService.getValue(cacheKey);
         if (null != activityEntity) return activityEntity;
@@ -63,11 +72,12 @@ public class ActivityRepository implements IActivityRepository {
                 .state(ActivityStateVO.valueOf(raffleActivity.getState()))
                 .build();
         redisService.setValue(cacheKey, activityEntity);
-        return activityEntity;    }
+        return activityEntity;
+    }
 
     @Override
     public ActivityCountEntity queryRaffleActivityCountByActivityCountId(Long activityCountId) {
-// 优先从缓存获取
+        // 优先从缓存获取
         String cacheKey = Constants.RedisKey.ACTIVITY_COUNT_KEY + activityCountId;
         ActivityCountEntity activityCountEntity = redisService.getValue(cacheKey);
         if (null != activityCountEntity) return activityCountEntity;
@@ -80,5 +90,47 @@ public class ActivityRepository implements IActivityRepository {
                 .monthCount(raffleActivityCount.getMonthCount())
                 .build();
         redisService.setValue(cacheKey, activityCountEntity);
-        return activityCountEntity;    }
+        return activityCountEntity;
+    }
+
+    @Override
+    public void doSaveOrder(CreateOrderAggregate createOrderAggregate) {
+        try {
+            // 订单对象
+            ActivityOrderEntity activityOrderEntity = createOrderAggregate.getActivityOrderEntity();
+            RaffleActivityOrder raffleActivityOrder = new RaffleActivityOrder();
+            raffleActivityOrder.setUserId(activityOrderEntity.getUserId());
+            raffleActivityOrder.setSku(activityOrderEntity.getSku());
+            raffleActivityOrder.setActivityId(activityOrderEntity.getActivityId());
+            raffleActivityOrder.setActivityName(activityOrderEntity.getActivityName());
+            raffleActivityOrder.setStrategyId(activityOrderEntity.getStrategyId());
+            raffleActivityOrder.setOrderId(activityOrderEntity.getOrderId());
+            raffleActivityOrder.setOrderTime(activityOrderEntity.getOrderTime());
+            raffleActivityOrder.setTotalCount(activityOrderEntity.getTotalCount());
+            raffleActivityOrder.setDayCount(activityOrderEntity.getDayCount());
+            raffleActivityOrder.setMonthCount(activityOrderEntity.getMonthCount());
+            raffleActivityOrder.setTotalCount(createOrderAggregate.getTotalCount());
+            raffleActivityOrder.setDayCount(createOrderAggregate.getDayCount());
+            raffleActivityOrder.setMonthCount(createOrderAggregate.getMonthCount());
+            raffleActivityOrder.setState(activityOrderEntity.getState().getCode());
+            raffleActivityOrder.setOutBusinessNo(activityOrderEntity.getOutBusinessNo());
+
+            // 账户对象
+            RaffleActivityAccount raffleActivityAccount = new RaffleActivityAccount();
+            raffleActivityAccount.setUserId(createOrderAggregate.getUserId());
+            raffleActivityAccount.setActivityId(createOrderAggregate.getActivityId());
+            raffleActivityAccount.setTotalCount(createOrderAggregate.getTotalCount());
+            raffleActivityAccount.setTotalCountSurplus(createOrderAggregate.getTotalCount());
+            raffleActivityAccount.setDayCount(createOrderAggregate.getDayCount());
+            raffleActivityAccount.setDayCountSurplus(createOrderAggregate.getDayCount());
+            raffleActivityAccount.setMonthCount(createOrderAggregate.getMonthCount());
+            raffleActivityAccount.setMonthCountSurplus(createOrderAggregate.getMonthCount());
+
+
+
+        } finally {
+
+        }
+    }
+
 }
