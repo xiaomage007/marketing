@@ -21,11 +21,14 @@
     </resultMap>
 
     <insert id="insert" parameterType="com.charlie.infrastructure.persistent.po.RaffleActivityOrder">
-        insert into raffle_activity_order(user_id, sku, activity_id, activity_name, strategy_id, order_id, order_time,
-        state, create_time, update_time)
-        values(#{userId}, #{sku},#{activityId}, #{activityName}, #{strategyId}, #{orderId}, #{orderTime}, #{state},
-        now(),
-        now())
+        insert into raffle_activity_order
+        (user_id, sku, activity_id, activity_name, strategy_id, order_id, order_time, state, out_business_no,
+        total_count, day_count, month_count,
+        create_time, update_time)
+        values
+        (#{userId}, #{sku}, #{activityId}, #{activityName}, #{strategyId}, #{orderId}, #{orderTime}, #{state},
+        #{outBusinessNo}, #{totalCount}, #{dayCount}, #{monthCount},
+        now(), now())
     </insert>
 
     <select id="queryRaffleActivityOrderByUserId" parameterType="java.lang.String" resultMap="dataMap">
