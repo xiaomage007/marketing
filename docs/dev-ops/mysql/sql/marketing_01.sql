@@ -52,7 +52,7 @@ CREATE TABLE `raffle_activity_order_000`
 INSERT INTO `raffle_activity_order_001` (`id`, `user_id`, `sku`, `activity_id`, `activity_name`, `strategy_id`,
                                          `order_id`, `order_time`, `total_count`, `day_count`, `month_count`, `state`,
                                          `out_business_no`, `create_time`, `update_time`)
-VALUES (3, 'xiaofuge', 9011, 100301, '测试活动', 100006, '383240888158', '2024-03-23 04:38:23', 1, 1, 1, 'completed',
+VALUES (3, 'Charlie', 9011, 100301, '测试活动', 100006, '383240888158', '2024-03-23 04:38:23', 1, 1, 1, 'completed',
         '700091009111', '2024-03-23 12:38:23', '2024-03-23 12:38:23');
 
 
