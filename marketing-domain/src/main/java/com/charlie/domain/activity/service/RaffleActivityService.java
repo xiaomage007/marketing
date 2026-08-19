@@ -16,7 +16,7 @@ import java.util.Date;
  * @date: 2026/8/15 16:50
  */
 @Service
-public class RaffleActivityService extends AbstractRaffleActivity{
+public class RaffleActivityService extends AbstractRaffleActivity {
 
     public RaffleActivityService(IActivityRepository activityRepository, DefaultActivityChainFactory actionChainFactory) {
         super(activityRepository, actionChainFactory);
@@ -48,7 +48,8 @@ public class RaffleActivityService extends AbstractRaffleActivity{
                 .dayCount(activityCountEntity.getDayCount())
                 .monthCount(activityCountEntity.getMonthCount())
                 .activityOrderEntity(activityOrderEntity)
-                .build();    }
+                .build();
+    }
 
     @Override
     protected void doSaveOrder(CreateOrderAggregate createOrderAggregate) {
