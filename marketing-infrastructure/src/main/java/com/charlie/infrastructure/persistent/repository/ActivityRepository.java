@@ -1,6 +1,7 @@
 package com.charlie.infrastructure.persistent.repository;
 
 import cn.bugstack.middleware.db.router.strategy.IDBRouterStrategy;
+import com.charlie.domain.activity.event.ActivitySkuStockZeroMessageEvent;
 import com.charlie.domain.activity.model.aggregate.CreateOrderAggregate;
 import com.charlie.domain.activity.model.entity.ActivityCountEntity;
 import com.charlie.domain.activity.model.entity.ActivityEntity;
@@ -8,6 +9,7 @@ import com.charlie.domain.activity.model.entity.ActivityOrderEntity;
 import com.charlie.domain.activity.model.entity.ActivitySkuEntity;
 import com.charlie.domain.activity.model.valobj.ActivityStateVO;
 import com.charlie.domain.activity.repository.IActivityRepository;
+import com.charlie.infrastructure.event.EventPublisher;
 import com.charlie.infrastructure.persistent.dao.*;
 import com.charlie.infrastructure.persistent.po.*;
 import com.charlie.infrastructure.persistent.redis.IRedisService;
@@ -21,6 +23,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @description: 活动仓储服务
@@ -47,6 +50,10 @@ public class ActivityRepository implements IActivityRepository {
     private TransactionTemplate transactionTemplate;
     @Resource
     private IDBRouterStrategy dbRouter;
+    @Resource
+    private ActivitySkuStockZeroMessageEvent activitySkuStockZeroMessageEvent;
+    @Resource
+    private EventPublisher eventPublisher;
 
     @Override
     public ActivitySkuEntity queryActivitySku(Long sku) {
@@ -165,8 +172,22 @@ public class ActivityRepository implements IActivityRepository {
 
     @Override
     public boolean subtractionActivitySkuStock(Long sku, String cacheKey, Date endDateTime) {
-
-        return false;
+        long surplus = redisService.decr(cacheKey);
+        if (surplus == 0) {
+            // 库存消耗没了以后，发送MQ消息，更新数据库库存
+            eventPublisher.publish(activitySkuStockZeroMessageEvent.topic(), activitySkuStockZeroMessageEvent.buildEventMessage(sku));
+            return false;
+        } else if (surplus < 0) {
+            redisService.setAtomicLong(cacheKey, 0);
+            return false;
+        }
+        String lockKey = cacheKey + Constants.UNDERLINE + surplus;
+        long expireMillis = endDateTime.getTime() - System.currentTimeMillis()+ TimeUnit.DAYS.toMillis(1);
+        Boolean lock = redisService.setNx(lockKey, expireMillis, TimeUnit.MILLISECONDS);
+        if (!lock) {
+            log.info("活动sku库存加锁失败 {}", lockKey);
+        }
+        return lock;
     }
 
 }

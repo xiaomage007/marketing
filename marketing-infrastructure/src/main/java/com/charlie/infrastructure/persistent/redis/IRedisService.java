@@ -2,6 +2,8 @@ package com.charlie.infrastructure.persistent.redis;
 
 import org.redisson.api.*;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Redis 服务
  *
@@ -254,5 +256,30 @@ public interface IRedisService {
      */
     void setAtomicLong(String key, long value);
 
+    /**
+     * 分布式锁的"setnx"简化版:仅当 key 不存在时设置成功,无过期时间。
+     * <p>
+     * 底层 Redis 命令 {@code SETNX key "lock"}。
+     * <b>注意:</b>本方法<b>不会</b>设置过期时间,若调用方忘记释放会导致死锁,
+     * 生产环境推荐改用 {@link #setNx(String, long, TimeUnit)} 指定过期时间。
+     *
+     * @param key 锁 key
+     * @return true=抢锁成功(key 不存在,已写入);false=key 已存在,锁被别人持有
+     * @see #setNx(String, long, TimeUnit)
+     */
     Boolean setNx(String lockKey);
+
+    /**
+     * 分布式锁的"setnx"简化版(带过期时间):仅当 key 不存在时设置成功,并设置过期时间。
+     * <p>
+     * 底层 Redis 命令 {@code SET key "lock" NX PX <expired>},原子操作,无需 Lua 脚本。
+     * 即使调用方宕机未主动释放,锁也会在 {@code expired} 后自动过期——避免永久死锁。
+     *
+     * @param key      锁 key
+     * @param expired  过期时间数值,必须为正数
+     * @param timeUnit 时间单位,如 {@link TimeUnit#SECONDS} / {@link TimeUnit#MINUTES}
+     * @return true=抢锁成功;false=key 已存在,锁被别人持有
+     */
+    Boolean setNx(String key, long expired, TimeUnit timeUnit);
+
 }

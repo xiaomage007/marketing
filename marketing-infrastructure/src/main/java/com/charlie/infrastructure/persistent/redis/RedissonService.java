@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Redis 服务 - Redisson 实现
@@ -52,11 +53,11 @@ public class RedissonService implements IRedisService {
      * @param expired 过期时间,单位<b>毫秒</b>(注意不是秒)。例如 5 分钟 = {@code 5 * 60 * 1000}
      * @throws IllegalArgumentException 若 expired 为负数,Redisson 会抛异常
      *
-     * <h4>使用示例:短信验证码 5 分钟过期</h4>
-     * <pre>{@code
-     * redissonService.setValue("sms:code:13800138000", "6523", 5 * 60 * 1000L);
-     * // 5 分钟后该 key 自动消失,验证码失效
-     * }</pre>
+     *                                  <h4>使用示例:短信验证码 5 分钟过期</h4>
+     *                                  <pre>{@code
+     *                                                                   redissonService.setValue("sms:code:13800138000", "6523", 5 * 60 * 1000L);
+     *                                                                   // 5 分钟后该 key 自动消失,验证码失效
+     *                                                                   }</pre>
      */
     @Override
     public <T> void setValue(String key, T value, long expired) {
@@ -272,12 +273,12 @@ public class RedissonService implements IRedisService {
      * @param key   Set 的 key
      * @param value 待添加的元素
      *
-     * <h4>使用示例:用户标签</h4>
-     * <pre>{@code
-     * redissonService.addToSet("user:tag:u001", "VIP");
-     * redissonService.addToSet("user:tag:u001", "新用户");
-     * redissonService.addToSet("user:tag:u001", "VIP");    // 重复添加无副作用
-     * }</pre>
+     *              <h4>使用示例:用户标签</h4>
+     *              <pre>{@code
+     *                           redissonService.addToSet("user:tag:u001", "VIP");
+     *                           redissonService.addToSet("user:tag:u001", "新用户");
+     *                           redissonService.addToSet("user:tag:u001", "VIP");    // 重复添加无副作用
+     *                           }</pre>
      */
     public void addToSet(String key, String value) {
         RSet<String> set = redissonClient.getSet(key);
@@ -311,13 +312,13 @@ public class RedissonService implements IRedisService {
      * @param key   List 的 key
      * @param value 待追加的元素
      *
-     * <h4>使用示例:最近浏览记录(只保留最近 N 条)</h4>
-     * <pre>{@code
-     * redissonService.addToList("user:browse:u001", "商品A");
-     * redissonService.addToList("user:browse:u001", "商品B");
-     * RList<String> list = redissonService.getQueue("user:browse:u001");
-     * list.trim(list.size() - 10, list.size() - 1);   // 只保留最近 10 条
-     * }</pre>
+     *              <h4>使用示例:最近浏览记录(只保留最近 N 条)</h4>
+     *              <pre>{@code
+     *                           redissonService.addToList("user:browse:u001", "商品A");
+     *                           redissonService.addToList("user:browse:u001", "商品B");
+     *                           RList<String> list = redissonService.getQueue("user:browse:u001");
+     *                           list.trim(list.size() - 10, list.size() - 1);   // 只保留最近 10 条
+     *                           }</pre>
      */
     public void addToList(String key, String value) {
         RList<String> list = redissonClient.getList(key);
@@ -412,14 +413,14 @@ public class RedissonService implements IRedisService {
      * @param key   ZSet 的 key
      * @param value 成员
      *
-     * <h4>使用示例:排行榜(按分数排序)</h4>
-     * <pre>{@code
-     * RSortedSet<Integer> rank = redissonClient.getSortedSet("rank:score:room:1");
-     * rank.add(95, 1001);   // 用户 1001 分数 95
-     * rank.add(88, 1002);   // 用户 1002 分数 88
-     * // 取分数前三
-     * List<Integer> top3 = rank.entryRange(0, 2);
-     * }</pre>
+     *              <h4>使用示例:排行榜(按分数排序)</h4>
+     *              <pre>{@code
+     *                           RSortedSet<Integer> rank = redissonClient.getSortedSet("rank:score:room:1");
+     *                           rank.add(95, 1001);   // 用户 1001 分数 95
+     *                           rank.add(88, 1002);   // 用户 1002 分数 88
+     *                           // 取分数前三
+     *                           List<Integer> top3 = rank.entryRange(0, 2);
+     *                           }</pre>
      */
     public void addToSortedSet(String key, String value) {
         RSortedSet<String> sortedSet = redissonClient.getSortedSet(key);
@@ -608,10 +609,10 @@ public class RedissonService implements IRedisService {
      * @param key   键
      * @param value 初始值
      *
-     * <h4>使用示例:系统启动时初始化每日库存</h4>
-     * <pre>{@code
-     * redissonService.setAtomicLong("stock:sku:10086:today", 1000);  // 仅首次生效
-     * }</pre>
+     *              <h4>使用示例:系统启动时初始化每日库存</h4>
+     *              <pre>{@code
+     *                           redissonService.setAtomicLong("stock:sku:10086:today", 1000);  // 仅首次生效
+     *                           }</pre>
      */
     @Override
     public void setAtomicLong(String key, long value) {
@@ -640,6 +641,39 @@ public class RedissonService implements IRedisService {
     @Override
     public Boolean setNx(String key) {
         return redissonClient.getBucket(key).trySet("lock");
+    }
+
+    /**
+     * 分布式锁的"setnx"简化版(带过期时间):仅当 key 不存在时设置成功,并设置过期时间。
+     * <p>
+     * 底层 Redis {@code SET key "lock" NX PX <expired>},<b>原子操作</b>——"设置值 + 设过期时间 + 判存在"在 Redis 单线程模型下天然原子,无需 Lua 脚本。
+     * 与 {@link #setNx(String)} 的核心区别:本方法带 <b>过期时间</b>,即使调用方宕机未主动释放,
+     * 锁也会在 {@code expired} 后自动失效——<b>生产环境强推使用本方法</b>。
+     *
+     * @param key      锁 key
+     * @param expired  过期时间数值,正数
+     * @param timeUnit 时间单位,如 {@link TimeUnit#MINUTES} / {@link TimeUnit#SECONDS}
+     * @return true=抢锁成功;false=key 已存在,锁被别人持有
+     *
+     * <h4>使用示例:分布式定时任务防重(5 分钟自动兜底释放)</h4>
+     * <pre>{@code
+     * if (redissonService.setNx("lock:scheduled:dailyReport", 5, TimeUnit.MINUTES)) {
+     *     try { generateDailyReport(); }
+     *     finally { redissonService.remove("lock:scheduled:dailyReport"); }   // 正常路径主动释放,提前腾出锁
+     * } else {
+     *     log.info("任务正在其他节点执行,本次跳过");
+     * }
+     * }</pre>
+     *
+     * <h4>与 {@link #setNx(String)} 的取舍</h4>
+     * <ul>
+     *   <li>本方法:<b>安全</b>——宕机也能解锁;但锁内业务执行超时会"误释放"别人持有的锁(需业务幂等)</li>
+     *   <li>无参 setNx:<b>不安全</b>——宕机会死锁;但锁生命周期与业务严格对齐,无"误释放"问题</li>
+     * </ul>
+     */
+    @Override
+    public Boolean setNx(String key, long expired, TimeUnit timeUnit) {
+        return redissonClient.getBucket(key).trySet("lock", expired, timeUnit);
     }
 
 }
