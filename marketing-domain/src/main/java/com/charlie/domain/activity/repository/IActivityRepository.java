@@ -4,6 +4,7 @@ import com.charlie.domain.activity.model.aggregate.CreateOrderAggregate;
 import com.charlie.domain.activity.model.entity.ActivityCountEntity;
 import com.charlie.domain.activity.model.entity.ActivityEntity;
 import com.charlie.domain.activity.model.entity.ActivitySkuEntity;
+import com.charlie.domain.activity.model.valobj.ActivitySkuStockKeyVO;
 
 import java.util.Date;
 
@@ -25,4 +26,14 @@ public interface IActivityRepository {
     void cacheActivitySkuStockCount(String cacheKey, Integer stockCount);
 
     boolean subtractionActivitySkuStock(Long sku, String cacheKey, Date endDateTime);
+
+    void activitySkuStockConsumeSendQueue(ActivitySkuStockKeyVO build);
+
+    ActivitySkuStockKeyVO takeQueueValue();
+
+    void updateActivitySkuStock(Long sku);
+
+    void clearActivitySkuStock(Long sku);
+
+    void clearQueueValue();
 }

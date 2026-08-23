@@ -1,0 +1,112 @@
+erDiagram
+    raffle_activity {
+        bigint id PK "AUTO_INCREMENT"
+        bigint activity_id "活动ID"
+        varchar_64 activity_name "活动名称"
+        bigint strategy_id "抽奖策略ID"
+    }
+
+    raffle_activity_sku {
+        int id PK "AUTO_INCREMENT"
+        bigint sku "商品SKU编号"
+        bigint activity_id FK "活动ID"
+        int stock_count "商品总库存"
+        int stock_count_surplus "剩余库存"
+    }
+
+    raffle_activity_order_000 {
+        bigint id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint sku FK "商品SKU"
+        bigint activity_id FK "活动ID"
+        varchar_64 activity_name "活动名称（冗余）"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id "订单ID"
+        datetime order_time "下单时间"
+        int total_count "获得总次数"
+        int day_count "获得日次数"
+        int month_count "获得月次数"
+        varchar_8 state "not_used/complete"
+        varchar_64 out_business_no "业务防重ID"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    raffle_activity_order_001 {
+        bigint id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint sku FK "商品SKU"
+        bigint activity_id FK "活动ID"
+        varchar_64 activity_name "活动名称（冗余）"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id "订单ID"
+        datetime order_time "下单时间"
+        int total_count "获得总次数"
+        int day_count "获得日次数"
+        int month_count "获得月次数"
+        varchar_8 state "not_used/complete"
+        varchar_64 out_business_no "业务防重ID"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    raffle_activity_order_002 {
+        bigint id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint sku FK "商品SKU"
+        bigint activity_id FK "活动ID"
+        varchar_64 activity_name "活动名称（冗余）"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id "订单ID"
+        datetime order_time "下单时间"
+        int total_count "获得总次数"
+        int day_count "获得日次数"
+        int month_count "获得月次数"
+        varchar_8 state "not_used/complete"
+        varchar_64 out_business_no "业务防重ID"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    raffle_activity_order_003 {
+        bigint id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint sku FK "商品SKU"
+        bigint activity_id FK "活动ID"
+        varchar_64 activity_name "活动名称（冗余）"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id "订单ID"
+        datetime order_time "下单时间"
+        int total_count "获得总次数"
+        int day_count "获得日次数"
+        int month_count "获得月次数"
+        varchar_8 state "not_used/complete"
+        varchar_64 out_business_no "业务防重ID"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    raffle_activity_account {
+        bigint id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint activity_id FK "活动ID"
+        int total_count "总次数额度"
+        int total_count_surplus "总次数剩余"
+        int day_count "日次数额度"
+        int day_count_surplus "日次数剩余"
+        int month_count "月次数额度"
+        int month_count_surplus "月次数剩余"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    raffle_activity ||--o{ raffle_activity_sku : "activity_id"
+    raffle_activity_sku ||--o{ raffle_activity_order_000 : "sku"
+    raffle_activity_sku ||--o{ raffle_activity_order_001 : "sku"
+    raffle_activity_sku ||--o{ raffle_activity_order_002 : "sku"
+    raffle_activity_sku ||--o{ raffle_activity_order_003 : "sku"
+    raffle_activity ||--o{ raffle_activity_order_000 : "activity_id"
+    raffle_activity ||--o{ raffle_activity_order_001 : "activity_id"
+    raffle_activity ||--o{ raffle_activity_order_002 : "activity_id"
+    raffle_activity ||--o{ raffle_activity_order_003 : "activity_id"
+    raffle_activity ||--o{ raffle_activity_account : "activity_id"

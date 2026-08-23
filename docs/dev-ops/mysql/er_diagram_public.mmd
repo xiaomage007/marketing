@@ -1,0 +1,118 @@
+erDiagram
+    award {
+        int id PK "AUTO_INCREMENT"
+        int award_id "奖品业务ID"
+        varchar_32 award_key "奖品对接标识"
+        varchar_32 award_config "奖品配置信息"
+        varchar_128 award_desc "奖品内容描述"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    strategy {
+        bigint id PK "AUTO_INCREMENT"
+        bigint strategy_id "抽奖策略ID"
+        varchar_128 strategy_desc "策略描述"
+        varchar_256 rule_models "规则模型，逗号分隔"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    strategy_award {
+        bigint id PK "AUTO_INCREMENT"
+        bigint strategy_id FK "抽奖策略ID"
+        int award_id FK "奖品ID"
+        varchar_128 award_title "奖品标题"
+        varchar_128 award_subtitle "奖品副标题"
+        int award_count "奖品库存总量"
+        int award_count_surplus "奖品库存剩余"
+        decimal award_rate "中奖概率"
+        varchar_256 rule_models "规则树ID"
+        int sort "排序"
+        datetime create_time "创建时间"
+        datetime update_time "修改时间"
+    }
+
+    strategy_rule {
+        bigint id PK "AUTO_INCREMENT"
+        int strategy_id FK "抽奖策略ID"
+        int award_id "奖品ID"
+        tinyint rule_type "1=策略规则 2=奖品规则"
+        varchar_16 rule_model "规则类型"
+        varchar_256 rule_value "规则比值"
+        varchar_128 rule_desc "规则描述"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    raffle_activity {
+        bigint id PK "AUTO_INCREMENT"
+        bigint activity_id "活动ID"
+        varchar_64 activity_name "活动名称"
+        varchar_128 activity_desc "活动描述"
+        datetime begin_date_time "开始时间"
+        datetime end_date_time "结束时间"
+        bigint strategy_id FK "抽奖策略ID"
+        varchar_8 state "create/open/close"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    raffle_activity_count {
+        bigint id PK "AUTO_INCREMENT"
+        bigint activity_count_id "活动次数配置ID"
+        int total_count "总参与次数上限"
+        int day_count "每日参与次数上限"
+        int month_count "每月参与次数上限"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    raffle_activity_sku {
+        int id PK "AUTO_INCREMENT"
+        bigint sku "商品SKU编号"
+        bigint activity_id FK "活动ID"
+        bigint activity_count_id FK "次数配置ID"
+        int stock_count "商品总库存"
+        int stock_count_surplus "剩余库存"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    rule_tree {
+        bigint id PK "AUTO_INCREMENT"
+        varchar_32 tree_id "规则树ID"
+        varchar_64 tree_name "规则树名称"
+        varchar_128 tree_desc "规则树描述"
+        varchar_32 tree_node_rule_key "根入口规则Key"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    rule_tree_node {
+        bigint id PK "AUTO_INCREMENT"
+        varchar_32 tree_id FK "所属规则树ID"
+        varchar_32 rule_key "规则Key"
+        varchar_64 rule_desc "规则描述"
+        varchar_128 rule_value "规则比值"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    rule_tree_node_line {
+        bigint id PK "AUTO_INCREMENT"
+        varchar_32 tree_id FK "所属规则树ID"
+        varchar_32 rule_node_from "来源节点"
+        varchar_32 rule_node_to "目标节点"
+        varchar_8 rule_limit_type "EQUAL/GT/LT/GTE/LTE/ENUM"
+        varchar_32 rule_limit_value "限定值"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    award ||--o{ strategy_award : "award_id"
+    strategy ||--o{ strategy_award : "strategy_id"
+    strategy ||--o{ strategy_rule : "strategy_id"
+    raffle_activity ||--|| strategy : "strategy_id"
+    raffle_activity ||--o{ raffle_activity_sku : "activity_id"
+    raffle_activity_count ||--o{ raffle_activity_sku : "activity_count_id"

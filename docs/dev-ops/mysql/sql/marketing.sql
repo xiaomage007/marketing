@@ -55,7 +55,7 @@ CREATE TABLE `raffle_activity`
 
 INSERT INTO `raffle_activity` (`id`, `activity_id`, `activity_name`, `activity_desc`, `begin_date_time`,
                                `end_date_time`, `strategy_id`, `state`, `create_time`, `update_time`)
-VALUES (1, 100301, '测试活动', '测试活动', '2024-03-09 10:15:10', '2034-03-09 10:15:10', 100006, 'create',
+VALUES (1, 100301, '测试活动', '测试活动', '2024-03-09 10:15:10', '2034-03-09 10:15:10', 100006, 'open',
         '2024-03-09 10:15:10', '2024-03-16 11:17:13');
 
 DROP TABLE IF EXISTS `raffle_activity_count`;
