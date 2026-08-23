@@ -28,4 +28,12 @@ public interface IActivityRepository {
     boolean subtractionActivitySkuStock(Long sku, String cacheKey, Date endDateTime);
 
     void activitySkuStockConsumeSendQueue(ActivitySkuStockKeyVO build);
+
+    ActivitySkuStockKeyVO takeQueueValue();
+
+    void updateActivitySkuStock(Long sku);
+
+    void clearActivitySkuStock(Long sku);
+
+    void clearQueueValue();
 }

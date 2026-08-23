@@ -102,9 +102,32 @@ redis:
       ping-interval: 60000
       keep-alive: true
 
+# RabbitMQ - 由 spring-boot-starter-amqp 自动装配
+# topology(Exchange/Queue/Binding)统一在 com.charlie.infrastructure.mq.RabbitMqConfig 声明
+spring:
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: admin
+    password: admin
+    virtual-host: /
+    # 发送方 confirm:correlated 模式需配合 CorrelationData 使用
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+    listener:
+      simple:
+        # 自动 ack:listener 方法正常返回即 ack,异常抛出走重试/死信
+        acknowledge-mode: auto
+        prefetch: 10
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000
+
 # 日志
 logging:
   level:
     root: info
   config: classpath:logback-spring.xml
-

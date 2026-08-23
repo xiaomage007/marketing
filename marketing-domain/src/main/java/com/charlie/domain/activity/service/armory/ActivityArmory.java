@@ -3,6 +3,8 @@ package com.charlie.domain.activity.service.armory;
 import com.charlie.domain.activity.model.entity.ActivitySkuEntity;
 import com.charlie.domain.activity.repository.IActivityRepository;
 import com.charlie.types.common.Constants;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -12,6 +14,8 @@ import java.util.Date;
  * @author: Charlie
  * @date: 2026/8/20 7:47
  */
+@Slf4j
+@Service
 public class ActivityArmory implements IActivityArmory, IActivityDispatch {
 
     @Resource
