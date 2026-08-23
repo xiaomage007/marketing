@@ -7,6 +7,7 @@ import com.charlie.domain.activity.model.entity.ActivityCountEntity;
 import com.charlie.domain.activity.model.entity.ActivityEntity;
 import com.charlie.domain.activity.model.entity.ActivityOrderEntity;
 import com.charlie.domain.activity.model.entity.ActivitySkuEntity;
+import com.charlie.domain.activity.model.valobj.ActivitySkuStockKeyVO;
 import com.charlie.domain.activity.model.valobj.ActivityStateVO;
 import com.charlie.domain.activity.repository.IActivityRepository;
 import com.charlie.infrastructure.event.EventPublisher;
@@ -17,6 +18,8 @@ import com.charlie.types.common.Constants;
 import com.charlie.types.enums.ResponseCode;
 import com.charlie.types.exception.AppException;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBlockingQueue;
+import org.redisson.api.RDelayedQueue;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -55,6 +58,21 @@ public class ActivityRepository implements IActivityRepository {
     @Resource
     private EventPublisher eventPublisher;
 
+    /**
+     * 根据 SKU 编号查询活动 SKU 详情。
+     *
+     * <p>直接走数据库查询（未走 Redis），因为 SKU 的剩余库存会被高频扣减，
+     * 缓存一致性成本高于收益，调用方按需决定是否引入缓存。
+     *
+     * <p>典型调用示例：
+     * <pre>{@code
+     * ActivitySkuEntity sku = repository.queryActivitySku(9001L);
+     * // sku.getStockCountSurplus() 即为该 SKU 的剩余可领数量
+     * }</pre>
+     *
+     * @param sku 活动 SKU 主键（{@code raffle_activity_sku.sku}）
+     * @return 活动 SKU 实体，包含活动 ID、活动次数 ID、库存总量与剩余库存
+     */
     @Override
     public ActivitySkuEntity queryActivitySku(Long sku) {
         RaffleActivitySku raffleActivitySku = raffleActivitySkuDao.queryActivitySku(sku);
@@ -67,6 +85,23 @@ public class ActivityRepository implements IActivityRepository {
                 .build();
     }
 
+    /**
+     * 根据活动 ID 查询活动基本信息（活动名称、时间窗、策略 ID、状态等）。
+     *
+     * <p>采用 Cache-Aside 模式：先读 Redis（{@code ACTIVITY_KEY + activityId}），
+     * 未命中再查数据库并回写缓存。
+     *
+     * <p>典型调用示例：
+     * <pre>{@code
+     * ActivityEntity activity = repository.queryRaffleActivityByActivityId(100301L);
+     * if (activity.getState() != ActivityStateVO.open) {
+     *     throw new AppException(ResponseCode.ACTIVITY_STATE_ERROR);
+     * }
+     * }</pre>
+     *
+     * @param activityId 活动主键
+     * @return 活动实体
+     */
     @Override
     public ActivityEntity queryRaffleActivityByActivityId(Long activityId) {
         // 优先从缓存获取
@@ -88,6 +123,24 @@ public class ActivityRepository implements IActivityRepository {
         return activityEntity;
     }
 
+    /**
+     * 根据活动次数 ID 查询活动可参与次数配置（总次数 / 日次数 / 月次数）。
+     *
+     * <p>采用 Cache-Aside 模式：先读 Redis（{@code ACTIVITY_COUNT_KEY + activityCountId}），
+     * 未命中再查数据库并回写缓存。
+     *
+     * <p>典型调用示例：
+     * <pre>{@code
+     * ActivityCountEntity count = repository.queryRaffleActivityCountByActivityCountId(401L);
+     * // 校验用户日/月参与次数是否已用尽
+     * if (userTodayUsed >= count.getDayCount()) {
+     *     throw new AppException(ResponseCode.ACCOUNT_DAY_QUOTA_ERROR);
+     * }
+     * }</pre>
+     *
+     * @param activityCountId 活动次数配置主键
+     * @return 活动次数配置实体
+     */
     @Override
     public ActivityCountEntity queryRaffleActivityCountByActivityCountId(Long activityCountId) {
         // 优先从缓存获取
@@ -188,6 +241,14 @@ public class ActivityRepository implements IActivityRepository {
             log.info("活动sku库存加锁失败 {}", lockKey);
         }
         return lock;
+    }
+
+    @Override
+    public void activitySkuStockConsumeSendQueue(ActivitySkuStockKeyVO activitySkuStockKeyVO) {
+        String cacheKey = Constants.RedisKey.ACTIVITY_SKU_COUNT_QUERY_KEY;
+        RBlockingQueue<ActivitySkuStockKeyVO> blockingQueue = redisService.getBlockingQueue(cacheKey);
+        RDelayedQueue<ActivitySkuStockKeyVO> delayedQueue = redisService.getDelayedQueue(blockingQueue);
+        delayedQueue.offer(activitySkuStockKeyVO,3, TimeUnit.SECONDS);
     }
 
 }
