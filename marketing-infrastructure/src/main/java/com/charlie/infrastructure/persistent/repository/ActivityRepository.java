@@ -2,7 +2,7 @@ package com.charlie.infrastructure.persistent.repository;
 
 import cn.bugstack.middleware.db.router.strategy.IDBRouterStrategy;
 import com.charlie.domain.activity.event.ActivitySkuStockZeroMessageEvent;
-import com.charlie.domain.activity.model.aggregate.CreateOrderAggregate;
+import com.charlie.domain.activity.model.aggregate.CreateQuotaOrderAggregate;
 import com.charlie.domain.activity.model.entity.ActivityCountEntity;
 import com.charlie.domain.activity.model.entity.ActivityEntity;
 import com.charlie.domain.activity.model.entity.ActivityOrderEntity;
@@ -185,7 +185,7 @@ public class ActivityRepository implements IActivityRepository {
      * @throws com.charlie.types.exception.AppException 当用户/活动/SKU 已存在订单（唯一索引冲突）时抛出
      */
     @Override
-    public void doSaveOrder(CreateOrderAggregate createOrderAggregate) {
+    public void doSaveOrder(CreateQuotaOrderAggregate createOrderAggregate) {
         try {
             // 订单对象
             ActivityOrderEntity activityOrderEntity = createOrderAggregate.getActivityOrderEntity();

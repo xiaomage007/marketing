@@ -1,7 +1,7 @@
 package com.charlie.trigger.job;
 
 import com.charlie.domain.activity.model.valobj.ActivitySkuStockKeyVO;
-import com.charlie.domain.activity.service.ISkuStock;
+import com.charlie.domain.activity.service.IRaffleActivitySkuStockService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -59,10 +59,10 @@ public class UpdateActivitySkuStockJob {
 
     /**
      * 领域服务抽象,屏蔽底层 Redis 延迟队列 + DAO 细节;
-     * 通过 {@code @Resource} 注入的是 Spring 容器中的领域服务 Bean(实现 {@link ISkuStock})。
+     * 通过 {@code @Resource} 注入的是 Spring 容器中的领域服务 Bean(实现 {@link IRaffleActivitySkuStockService})。
      */
     @Resource
-    private ISkuStock skuStock;
+    private IRaffleActivitySkuStockService skuStock;
 
     /**
      * 每 5 秒从延迟队列取一条活动 SKU 库存扣减事件,落库到 MySQL。

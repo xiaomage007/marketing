@@ -2,7 +2,7 @@ package com.charlie.trigger.listener;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.charlie.domain.activity.service.ISkuStock;
+import com.charlie.domain.activity.service.IRaffleActivitySkuStockService;
 import com.charlie.types.event.BaseEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -98,10 +98,10 @@ public class ActivitySkuStockZeroCustomer {
 
     /**
      * 领域服务抽象,屏蔽底层 Redis 队列 + DAO 细节;
-     * 通过 {@code @Resource} 注入的是 Spring 容器中的领域服务 Bean(实现 {@link ISkuStock})。
+     * 通过 {@code @Resource} 注入的是 Spring 容器中的领域服务 Bean(实现 {@link IRaffleActivitySkuStockService})。
      */
     @Resource
-    private ISkuStock skuStock;
+    private IRaffleActivitySkuStockService skuStock;
 
     /**
      * MQ 消息处理入口。{@code queues = "..."} 表示「直接监听已声明的队列」,不再由本注解自动声明;

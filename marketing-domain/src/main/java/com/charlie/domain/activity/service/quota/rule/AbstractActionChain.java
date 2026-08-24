@@ -1,4 +1,4 @@
-package com.charlie.domain.activity.service.rule;
+package com.charlie.domain.activity.service.quota.rule;
 
 /**
  * @description:

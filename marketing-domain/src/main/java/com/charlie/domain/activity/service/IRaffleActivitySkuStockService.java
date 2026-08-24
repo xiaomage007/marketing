@@ -7,7 +7,7 @@ import com.charlie.domain.activity.model.valobj.ActivitySkuStockKeyVO;
  * @author: Charlie
  * @date: 2026/8/23 15:19
  */
-public interface ISkuStock {
+public interface IRaffleActivitySkuStockService {
 
     ActivitySkuStockKeyVO takeQueueValue();
 
