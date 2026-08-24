@@ -26,7 +26,7 @@ erDiagram
         int total_count "获得总次数"
         int day_count "获得日次数"
         int month_count "获得月次数"
-        varchar_8 state "not_used/complete"
+        varchar_16 state "complete"
         varchar_64 out_business_no "业务防重ID"
         datetime create_time "创建时间"
         datetime update_time "更新时间"
@@ -44,7 +44,7 @@ erDiagram
         int total_count "获得总次数"
         int day_count "获得日次数"
         int month_count "获得月次数"
-        varchar_8 state "not_used/complete"
+        varchar_16 state "complete"
         varchar_64 out_business_no "业务防重ID"
         datetime create_time "创建时间"
         datetime update_time "更新时间"
@@ -62,7 +62,7 @@ erDiagram
         int total_count "获得总次数"
         int day_count "获得日次数"
         int month_count "获得月次数"
-        varchar_8 state "not_used/complete"
+        varchar_16 state "complete"
         varchar_64 out_business_no "业务防重ID"
         datetime create_time "创建时间"
         datetime update_time "更新时间"
@@ -80,7 +80,7 @@ erDiagram
         int total_count "获得总次数"
         int day_count "获得日次数"
         int month_count "获得月次数"
-        varchar_8 state "not_used/complete"
+        varchar_16 state "complete"
         varchar_64 out_business_no "业务防重ID"
         datetime create_time "创建时间"
         datetime update_time "更新时间"
@@ -100,6 +100,145 @@ erDiagram
         datetime update_time "更新时间"
     }
 
+    raffle_activity_account_day {
+        int id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint activity_id FK "活动ID"
+        varchar_10 day "yyyy-mm-dd"
+        int day_count "当日次数额度"
+        int day_count_surplus "当日次数剩余"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    raffle_activity_account_month {
+        int id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint activity_id FK "活动ID"
+        varchar_7 month "yyyy-mm"
+        int month_count "当月次数额度"
+        int month_count_surplus "当月次数剩余"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    task {
+        int id PK "AUTO_INCREMENT"
+        varchar_32 topic "消息主题"
+        varchar_512 message "消息主体"
+        varchar_16 state "create/completed/fail"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    user_raffle_order_000 {
+        int id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint activity_id FK "活动ID"
+        varchar_64 activity_name "活动名称（冗余）"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id "抽奖单ID"
+        datetime order_time "抽奖发起时间"
+        varchar_16 order_state "create/used/cancel"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    user_raffle_order_001 {
+        int id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint activity_id FK "活动ID"
+        varchar_64 activity_name "活动名称（冗余）"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id "抽奖单ID"
+        datetime order_time "抽奖发起时间"
+        varchar_16 order_state "create/used/cancel"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    user_raffle_order_002 {
+        int id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint activity_id FK "活动ID"
+        varchar_64 activity_name "活动名称（冗余）"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id "抽奖单ID"
+        datetime order_time "抽奖发起时间"
+        varchar_16 order_state "create/used/cancel"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    user_raffle_order_003 {
+        int id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint activity_id FK "活动ID"
+        varchar_64 activity_name "活动名称（冗余）"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id "抽奖单ID"
+        datetime order_time "抽奖发起时间"
+        varchar_16 order_state "create/used/cancel"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    user_award_record_000 {
+        int id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint activity_id "活动ID"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id FK "抽奖单ID（一对一）"
+        int award_id "奖品ID"
+        varchar_128 award_title "奖品标题（冗余）"
+        datetime award_time "中奖时间"
+        varchar_16 award_state "create/completed"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    user_award_record_001 {
+        int id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint activity_id "活动ID"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id FK "抽奖单ID（一对一）"
+        int award_id "奖品ID"
+        varchar_128 award_title "奖品标题（冗余）"
+        datetime award_time "中奖时间"
+        varchar_16 award_state "create/completed"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    user_award_record_002 {
+        int id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint activity_id "活动ID"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id FK "抽奖单ID（一对一）"
+        int award_id "奖品ID"
+        varchar_128 award_title "奖品标题（冗余）"
+        datetime award_time "中奖时间"
+        varchar_16 award_state "create/completed"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    user_award_record_003 {
+        int id PK "AUTO_INCREMENT"
+        varchar_32 user_id "用户ID（路由键）"
+        bigint activity_id "活动ID"
+        bigint strategy_id "抽奖策略ID"
+        varchar_12 order_id FK "抽奖单ID（一对一）"
+        int award_id "奖品ID"
+        varchar_128 award_title "奖品标题（冗余）"
+        datetime award_time "中奖时间"
+        varchar_16 award_state "create/completed"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
     raffle_activity ||--o{ raffle_activity_sku : "activity_id"
     raffle_activity_sku ||--o{ raffle_activity_order_000 : "sku"
     raffle_activity_sku ||--o{ raffle_activity_order_001 : "sku"
@@ -110,3 +249,10 @@ erDiagram
     raffle_activity ||--o{ raffle_activity_order_002 : "activity_id"
     raffle_activity ||--o{ raffle_activity_order_003 : "activity_id"
     raffle_activity ||--o{ raffle_activity_account : "activity_id"
+    raffle_activity ||--o{ raffle_activity_account_day : "activity_id"
+    raffle_activity ||--o{ raffle_activity_account_month : "activity_id"
+
+    user_raffle_order_000 ||--o| user_award_record_000 : "order_id 一一对应"
+    user_raffle_order_001 ||--o| user_award_record_001 : "order_id 一一对应"
+    user_raffle_order_002 ||--o| user_award_record_002 : "order_id 一一对应"
+    user_raffle_order_003 ||--o| user_award_record_003 : "order_id 一一对应"
