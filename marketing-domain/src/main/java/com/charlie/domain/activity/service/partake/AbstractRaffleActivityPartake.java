@@ -1,5 +1,6 @@
 package com.charlie.domain.activity.service.partake;
 
+import com.alibaba.fastjson.JSON;
 import com.charlie.domain.activity.model.entity.ActivityEntity;
 import com.charlie.domain.activity.model.entity.PartakeRaffleActivityEntity;
 import com.charlie.domain.activity.model.entity.UserRaffleOrderEntity;
@@ -44,7 +45,11 @@ public abstract class AbstractRaffleActivityPartake implements IRaffleActivityPa
             throw new AppException(ResponseCode.ACTIVITY_DATE_ERROR.getCode(), ResponseCode.ACTIVITY_DATE_ERROR.getInfo());
         }
         // 2. 查询未被使用的活动参与订单记录
-
+        UserRaffleOrderEntity userRaffleOrderEntity = activityRepository.queryNoUsedRaffleOrder(partakeRaffleActivityEntity);
+        if (null != userRaffleOrderEntity) {
+            log.info("创建参与活动订单 userId:{} activityId:{} userRaffleOrderEntity:{}", userId, activityId, JSON.toJSONString(userRaffleOrderEntity));
+            return userRaffleOrderEntity;
+        }
         // 3. 额度账户过滤&返回账户构建对象
 
         // 4. 构建订单
