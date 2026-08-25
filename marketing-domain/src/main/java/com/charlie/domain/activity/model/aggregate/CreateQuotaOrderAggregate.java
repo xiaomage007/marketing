@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * @description: 下单聚合对象
+ * @description: 账户额度下单聚合对象
  * @author: Charlie
  * @date: 2026/8/15 16:46
  */

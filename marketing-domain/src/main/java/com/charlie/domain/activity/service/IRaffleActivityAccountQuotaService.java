@@ -3,7 +3,7 @@ package com.charlie.domain.activity.service;
 import com.charlie.domain.activity.model.entity.SkuRechargeEntity;
 
 /**
- * @description: 抽奖活动订单接口
+ * @description: 抽奖活动账户额度服务
  * @author: Charlie
  * @date: 2026/8/15 16:47
  */
