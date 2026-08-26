@@ -2,11 +2,8 @@ package com.charlie.infrastructure.persistent.repository;
 
 import cn.bugstack.middleware.db.router.strategy.IDBRouterStrategy;
 import com.charlie.domain.activity.event.ActivitySkuStockZeroMessageEvent;
-import com.charlie.domain.activity.model.aggregate.CreateOrderAggregate;
-import com.charlie.domain.activity.model.entity.ActivityCountEntity;
-import com.charlie.domain.activity.model.entity.ActivityEntity;
-import com.charlie.domain.activity.model.entity.ActivityOrderEntity;
-import com.charlie.domain.activity.model.entity.ActivitySkuEntity;
+import com.charlie.domain.activity.model.aggregate.CreateQuotaOrderAggregate;
+import com.charlie.domain.activity.model.entity.*;
 import com.charlie.domain.activity.model.valobj.ActivitySkuStockKeyVO;
 import com.charlie.domain.activity.model.valobj.ActivityStateVO;
 import com.charlie.domain.activity.repository.IActivityRepository;
@@ -185,7 +182,7 @@ public class ActivityRepository implements IActivityRepository {
      * @throws com.charlie.types.exception.AppException 当用户/活动/SKU 已存在订单（唯一索引冲突）时抛出
      */
     @Override
-    public void doSaveOrder(CreateOrderAggregate createOrderAggregate) {
+    public void doSaveOrder(CreateQuotaOrderAggregate createOrderAggregate) {
         try {
             // 订单对象
             ActivityOrderEntity activityOrderEntity = createOrderAggregate.getActivityOrderEntity();
@@ -340,7 +337,7 @@ public class ActivityRepository implements IActivityRepository {
         long surplus = redisService.decr(cacheKey);
         if (surplus == 0) {
             // 库存消耗没了以后，发送MQ消息，更新数据库库存
-            eventPublisher.publish(activitySkuStockZeroMessageEvent.exchange(), activitySkuStockZeroMessageEvent.routingKey(), activitySkuStockZeroMessageEvent.buildEventMessage(sku));
+            eventPublisher.publish(activitySkuStockZeroMessageEvent, sku);
             return false;
         } else if (surplus < 0) {
             redisService.setAtomicLong(cacheKey, 0);
@@ -425,6 +422,11 @@ public class ActivityRepository implements IActivityRepository {
         String cacheKey = Constants.RedisKey.ACTIVITY_SKU_COUNT_QUERY_KEY;
         RBlockingQueue<ActivitySkuStockKeyVO> destinationQueue = redisService.getBlockingQueue(cacheKey);
         destinationQueue.clear();
+    }
+
+    @Override
+    public UserRaffleOrderEntity queryNoUsedRaffleOrder(PartakeRaffleActivityEntity partakeRaffleActivityEntity) {
+        return null;
     }
 
 }

@@ -2,7 +2,7 @@ package com.charlie.trigger.listener;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.charlie.domain.activity.service.ISkuStock;
+import com.charlie.domain.activity.service.IRaffleActivitySkuStockService;
 import com.charlie.types.event.BaseEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -98,14 +98,18 @@ public class ActivitySkuStockZeroCustomer {
 
     /**
      * 领域服务抽象,屏蔽底层 Redis 队列 + DAO 细节;
-     * 通过 {@code @Resource} 注入的是 Spring 容器中的领域服务 Bean(实现 {@link ISkuStock})。
+     * 通过 {@code @Resource} 注入的是 Spring 容器中的领域服务 Bean(实现 {@link IRaffleActivitySkuStockService})。
      */
     @Resource
-    private ISkuStock skuStock;
+    private IRaffleActivitySkuStockService skuStock;
 
     /**
      * MQ 消息处理入口。{@code queues = "..."} 表示「直接监听已声明的队列」,不再由本注解自动声明;
-     * 队列/交换机/binding 的声明集中在 RabbitMqConfig(marketing-infrastructure 模块),启动时由 RabbitAdmin 自动 declare。
+     * 队列/交换机/binding 的拓扑定义在 {@code application*.yml} 的 {@code rabbitmq.topology} 配置段,
+     * 由 RabbitMqConfig(marketing-infrastructure 模块)读取并构建 Declarables,启动时由 RabbitAdmin 自动 declare。
+     * <p>
+     * SpEL {@code #{@rabbitMqTopologyProperties.queues['activity-sku-stock-zero'].name}}:
+     * 引用配置绑定 Bean,按逻辑 key 取队列的 broker 物理名,与配置文件同源。
      * <p>
      * 流程:
      * <pre>
@@ -132,7 +136,7 @@ public class ActivitySkuStockZeroCustomer {
      * 失败时不能简单 {@code log + return}——必须抛出去让 Spring AMQP 走「消息拒绝」逻辑,
      * 触发死信队列 / 重试机制;否则静默吞异常会导致「Redis 0、DB 99」的脏数据永远不会被对账发现。
      */
-    @RabbitListener(queues = "#{T(com.charlie.domain.activity.event.RabbitMqTopology).ACTIVITY_SKU_STOCK_ZERO.getQueue()}")
+    @RabbitListener(queues = "#{@rabbitMqTopologyProperties.queues['activity-sku-stock-zero'].name}")
     public void listener(String message) {
 
         try {

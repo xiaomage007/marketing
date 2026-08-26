@@ -1,23 +1,23 @@
-package com.charlie.domain.activity.service;
+package com.charlie.domain.activity.service.quota;
 
 import com.charlie.domain.activity.model.entity.ActivityCountEntity;
 import com.charlie.domain.activity.model.entity.ActivityEntity;
 import com.charlie.domain.activity.model.entity.ActivitySkuEntity;
 import com.charlie.domain.activity.repository.IActivityRepository;
-import com.charlie.domain.activity.service.rule.factory.DefaultActivityChainFactory;
+import com.charlie.domain.activity.service.quota.rule.factory.DefaultActivityChainFactory;
 
 /**
  * @description: 抽奖活动的支撑类
  * @author: Charlie
  * @date: 2026/8/18 8:52
  */
-public class RaffleActivitySupport {
+public class RaffleActivityAccountQuotaSupport {
 
     protected IActivityRepository activityRepository;
 
     protected DefaultActivityChainFactory actionChainFactory;
 
-    public RaffleActivitySupport(IActivityRepository activityRepository, DefaultActivityChainFactory actionChainFactory) {
+    public RaffleActivityAccountQuotaSupport(IActivityRepository activityRepository, DefaultActivityChainFactory actionChainFactory) {
         this.activityRepository = activityRepository;
         this.actionChainFactory = actionChainFactory;
     }

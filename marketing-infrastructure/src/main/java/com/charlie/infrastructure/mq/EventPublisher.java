@@ -10,11 +10,16 @@ import org.springframework.stereotype.Component;
 /**
  * MQ 消息发布器 - 通过 RabbitTemplate 向指定 Exchange 发送消息。
  * <p>
- * 与 broker 拓扑解耦:调用方传 {@code (exchange, routingKey, eventMessage)},
- * 拓扑定义统一在 {@link RabbitMqConfig} 中管理,本类不硬编码任何队列/交换机名。
+ * 与 broker 拓扑解耦:拓扑定义统一在 {@code application*.yml} 的 {@code rabbitmq.topology}
+ * 配置段(由 {@link RabbitMqConfig} 读取并声明),本类不硬编码任何队列/交换机名。
  * <p>
- * <b>所在模块:</b> {@code marketing-infrastructure.mq}——与 {@link RabbitMqConfig} 同包,
- * 共同构成「MQ 基础设施层」:一个负责拓扑声明,一个负责消息发送。
+ * <b>三个重载对应三种场景:</b>
+ * <ul>
+ *   <li>{@link #publish(BaseEvent, Object)}:标准场景,事件对象自带 exchange/routingKey,一行直发</li>
+ *   <li>{@link #publish(String, String, BaseEvent.EventMessage)}:显式指定 exchange + routingKey,
+ *       适合路由键需要运行时动态决定的场景</li>
+ *   <li>{@link #publish(String, BaseEvent.EventMessage)}:fanout 广播场景,只需交换机、无需路由键</li>
+ * </ul>
  *
  * @author Charlie
  */
@@ -26,10 +31,35 @@ public class EventPublisher {
     private RabbitTemplate rabbitTemplate;
 
     /**
-     * 向指定 Exchange 发送事件消息。
+     * 标准事件发送 - exchange/routingKey/消息体全部由事件对象提供。
+     * <p>
+     * 调用方只需持有 {@link BaseEvent} 子类 Bean,一行完成发送:
+     * <pre>{@code
+     * eventPublisher.publish(activitySkuStockZeroMessageEvent, sku);
+     * }</pre>
      *
-     * @param exchange     目标 Exchange 名(由 {@link BaseEvent#exchange()} 提供)
-     * @param routingKey   目标 routingKey(由 {@link BaseEvent#routingKey()} 提供)
+     * @param event 业务事件(提供 exchange/routingKey 及消息体构造)
+     * @param data  业务数据,经 {@code event.buildEventMessage(data)} 包装为标准消息体
+     */
+    public <T> void publish(BaseEvent<T> event, T data) {
+        publish(event.exchange(), event.routingKey(), event.buildEventMessage(data));
+    }
+
+    /**
+     * fanout 广播发送 - 只指定交换机,fanout 类型交换机会忽略路由键,消息投递到所有绑定队列。
+     *
+     * @param exchange      目标 Exchange 名(对应 rabbitmq.topology.exchanges.*.name)
+     * @param eventMessage  事件消息体,会被序列化为 JSON
+     */
+    public void publish(String exchange, BaseEvent.EventMessage<?> eventMessage) {
+        publish(exchange, "", eventMessage);
+    }
+
+    /**
+     * 显式指定目标发送 - exchange 与 routingKey 由调用方运行时决定。
+     *
+     * @param exchange     目标 Exchange 名
+     * @param routingKey   目标 routingKey
      * @param eventMessage 事件消息体,会被序列化为 JSON
      */
     public void publish(String exchange, String routingKey, BaseEvent.EventMessage<?> eventMessage) {
