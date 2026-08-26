@@ -7,6 +7,7 @@ import com.charlie.domain.activity.model.aggregate.CreateQuotaOrderAggregate;
 import com.charlie.domain.activity.model.entity.*;
 import com.charlie.domain.activity.model.valobj.ActivitySkuStockKeyVO;
 import com.charlie.domain.activity.model.valobj.ActivityStateVO;
+import com.charlie.domain.activity.model.valobj.UserRaffleOrderStateVO;
 import com.charlie.domain.activity.repository.IActivityRepository;
 import com.charlie.infrastructure.mq.EventPublisher;
 import com.charlie.infrastructure.persistent.dao.*;
@@ -51,6 +52,8 @@ public class ActivityRepository implements IActivityRepository {
     private IRaffleActivityAccountMonthDao raffleActivityAccountMonthDao;
     @Resource
     private IRaffleActivityAccountDayDao raffleActivityAccountDayDao;
+    @Resource
+    private IUserRaffleOrderDao userRaffleOrderDao;
     @Resource
     private TransactionTemplate transactionTemplate;
     @Resource
@@ -431,7 +434,22 @@ public class ActivityRepository implements IActivityRepository {
 
     @Override
     public UserRaffleOrderEntity queryNoUsedRaffleOrder(PartakeRaffleActivityEntity partakeRaffleActivityEntity) {
-        return null;
+        // 查询数据
+        UserRaffleOrder userRaffleOrderReq = new UserRaffleOrder();
+        userRaffleOrderReq.setUserId(partakeRaffleActivityEntity.getUserId());
+        userRaffleOrderReq.setActivityId(partakeRaffleActivityEntity.getActivityId());
+        UserRaffleOrder userRaffleOrderRes = userRaffleOrderDao.queryNoUsedRaffleOrder(userRaffleOrderReq);
+        if (null == userRaffleOrderRes) return null;
+        // 封装结果
+        UserRaffleOrderEntity userRaffleOrderEntity = new UserRaffleOrderEntity();
+        userRaffleOrderEntity.setUserId(userRaffleOrderRes.getUserId());
+        userRaffleOrderEntity.setActivityId(userRaffleOrderRes.getActivityId());
+        userRaffleOrderEntity.setActivityName(userRaffleOrderRes.getActivityName());
+        userRaffleOrderEntity.setStrategyId(userRaffleOrderRes.getStrategyId());
+        userRaffleOrderEntity.setOrderId(userRaffleOrderRes.getOrderId());
+        userRaffleOrderEntity.setOrderTime(userRaffleOrderRes.getOrderTime());
+        userRaffleOrderEntity.setOrderState(UserRaffleOrderStateVO.valueOf(userRaffleOrderRes.getOrderState()));
+        return userRaffleOrderEntity;
     }
 
     @Override
@@ -476,6 +494,25 @@ public class ActivityRepository implements IActivityRepository {
                 .month(raffleActivityAccountMonthRes.getMonth())
                 .monthCount(raffleActivityAccountMonthRes.getMonthCount())
                 .monthCountSurplus(raffleActivityAccountMonthRes.getMonthCountSurplus())
+                .build();
+    }
+
+    @Override
+    public ActivityAccountDayEntity queryActivityAccountDayByUserId(String userId, Long activityId, String day) {
+        // 1. 查询账户
+        RaffleActivityAccountDay raffleActivityAccountDayReq = new RaffleActivityAccountDay();
+        raffleActivityAccountDayReq.setUserId(userId);
+        raffleActivityAccountDayReq.setActivityId(activityId);
+        raffleActivityAccountDayReq.setDay(day);
+        RaffleActivityAccountDay raffleActivityAccountDayRes = raffleActivityAccountDayDao.queryActivityAccountDayByUserId(raffleActivityAccountDayReq);
+        if (null == raffleActivityAccountDayRes) return null;
+        // 2. 转换对象
+        return ActivityAccountDayEntity.builder()
+                .userId(raffleActivityAccountDayRes.getUserId())
+                .activityId(raffleActivityAccountDayRes.getActivityId())
+                .day(raffleActivityAccountDayRes.getDay())
+                .dayCount(raffleActivityAccountDayRes.getDayCount())
+                .dayCountSurplus(raffleActivityAccountDayRes.getDayCountSurplus())
                 .build();
     }
 

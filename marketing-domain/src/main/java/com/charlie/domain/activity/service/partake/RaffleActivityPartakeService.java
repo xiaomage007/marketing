@@ -18,7 +18,7 @@ import java.util.Date;
  * @date: 2026/8/27 7:27
  */
 @Service
-public class RaffleActivityPartakeService extends AbstractRaffleActivityPartake{
+public class RaffleActivityPartakeService extends AbstractRaffleActivityPartake {
 
     private final SimpleDateFormat dateFormatMonth = new SimpleDateFormat("yyyy-MM");
     private final SimpleDateFormat dateFormatDay = new SimpleDateFormat("yyyy-MM-dd");
@@ -99,5 +99,6 @@ public class RaffleActivityPartakeService extends AbstractRaffleActivityPartake{
         userRaffleOrder.setOrderId(RandomStringUtils.randomNumeric(12));
         userRaffleOrder.setOrderTime(currentDate);
         userRaffleOrder.setOrderState(UserRaffleOrderStateVO.create);
-        return userRaffleOrder;    }
+        return userRaffleOrder;
+    }
 }

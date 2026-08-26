@@ -43,4 +43,6 @@ public interface IActivityRepository {
     ActivityAccountEntity queryActivityAccountByUserId(String userId, Long activityId);
 
     ActivityAccountMonthEntity queryActivityAccountMonthByUserId(String userId, Long activityId, String month);
+
+    ActivityAccountDayEntity queryActivityAccountDayByUserId(String userId, Long activityId, String day);
 }
