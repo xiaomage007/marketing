@@ -1,9 +1,7 @@
 package com.charlie.domain.activity.repository;
 
 import com.charlie.domain.activity.model.aggregate.CreateQuotaOrderAggregate;
-import com.charlie.domain.activity.model.entity.ActivityCountEntity;
-import com.charlie.domain.activity.model.entity.ActivityEntity;
-import com.charlie.domain.activity.model.entity.ActivitySkuEntity;
+import com.charlie.domain.activity.model.entity.*;
 import com.charlie.domain.activity.model.valobj.ActivitySkuStockKeyVO;
 
 import java.util.Date;
@@ -36,4 +34,6 @@ public interface IActivityRepository {
     void clearActivitySkuStock(Long sku);
 
     void clearQueueValue();
+
+    UserRaffleOrderEntity queryNoUsedRaffleOrder(PartakeRaffleActivityEntity partakeRaffleActivityEntity);
 }

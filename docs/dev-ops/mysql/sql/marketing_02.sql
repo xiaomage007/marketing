@@ -159,13 +159,19 @@ DROP TABLE IF EXISTS `task`;
 CREATE TABLE `task`
 (
     `id`          int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-    `topic`       varchar(32)  NOT NULL COMMENT '消息主题',
-    `message`     varchar(512) NOT NULL COMMENT '消息主体',
-    `state`       varchar(16)  NOT NULL DEFAULT 'create' COMMENT '任务状态；create-创建、completed-完成、fail-失败',
+    `user_id`     varchar(32)  NOT NULL COMMENT '用户ID（分库路由键，与 marketing_01/marketing_02 分库键一致）',
+    `message_id`  varchar(32)  NOT NULL COMMENT '消息唯一ID（与 BaseEvent.EventMessage.id 对齐，消费侧用作幂等键）',
+    `topic`       varchar(32)  NOT NULL COMMENT '业务主题（如 activity_sku_stock_zero，按业务语义聚合）',
+    `exchange`    varchar(64)  NOT NULL DEFAULT '' COMMENT 'RabbitMQ 交换机名；空串表示走 broker 默认交换机（与 BaseEvent.exchange() 对齐）',
+    `routing_key` varchar(64)  NOT NULL DEFAULT '' COMMENT 'RabbitMQ 路由键；默认交换机下等于队列名（与 BaseEvent.routingKey() 对齐）',
+    `queue`       varchar(64)  DEFAULT NULL COMMENT '目标队列名（与 BaseEvent.queue() 对齐）；fanout 等无路由场景可为 NULL，便于消费侧 @RabbitListener 定位',
+    `message`     varchar(512) NOT NULL COMMENT '消息主体（JSON 序列化）',
+    `state`       varchar(16)  NOT NULL DEFAULT 'create' COMMENT '任务状态；create-待发送、completed-发送成功、fail-发送失败',
     `create_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务表，发送MQ';
+    PRIMARY KEY (`id`),
+    KEY          `idx_state` (`state`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务表，发送MQ（落库消息与 RabbitMQ 投递参数，调度器按 state 扫描推进）';
 
 
 DROP TABLE IF EXISTS `user_award_record_000`;
