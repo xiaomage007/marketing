@@ -19,5 +19,4 @@ public interface IRaffleActivityAccountMonthDao {
 
     void insertActivityAccountMonth(RaffleActivityAccountMonth raffleActivityAccountMonth);
 
-
 }
