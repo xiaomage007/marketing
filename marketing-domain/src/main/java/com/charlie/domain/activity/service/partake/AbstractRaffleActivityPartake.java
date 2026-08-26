@@ -1,6 +1,7 @@
 package com.charlie.domain.activity.service.partake;
 
 import com.alibaba.fastjson.JSON;
+import com.charlie.domain.activity.model.aggregate.CreatePartakeOrderAggregate;
 import com.charlie.domain.activity.model.entity.ActivityEntity;
 import com.charlie.domain.activity.model.entity.PartakeRaffleActivityEntity;
 import com.charlie.domain.activity.model.entity.UserRaffleOrderEntity;
@@ -51,14 +52,18 @@ public abstract class AbstractRaffleActivityPartake implements IRaffleActivityPa
             return userRaffleOrderEntity;
         }
         // 3. 额度账户过滤&返回账户构建对象
-
+        CreatePartakeOrderAggregate createPartakeOrderAggregate = this.doFilterAccount(userId, activityId, currentDate);
         // 4. 构建订单
-
+        UserRaffleOrderEntity userRaffleOrder = this.buildUserRaffleOrder(userId, activityId, currentDate);
         // 5. 填充抽奖单实体对象
-
+        createPartakeOrderAggregate.setUserRaffleOrderEntity(userRaffleOrder);
         // 6. 保存聚合对象 - 一个领域内的一个聚合是一个事务操作
-
-        return null;
+        activityRepository.saveCreatePartakeOrderAggregate(createPartakeOrderAggregate);
+        return userRaffleOrder;
     }
+
+    protected abstract CreatePartakeOrderAggregate doFilterAccount(String userId, Long activityId, Date currentDate);
+
+    protected abstract UserRaffleOrderEntity buildUserRaffleOrder(String userId, Long activityId, Date currentDate);
 
 }
