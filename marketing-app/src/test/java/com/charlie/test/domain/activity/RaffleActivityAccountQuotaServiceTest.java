@@ -16,14 +16,14 @@ import javax.annotation.Resource;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * @description: 抽奖活动订单单测
+ * @description: 抽奖活动参与服务测试
  * @author: Charlie
  * @date: 2026/8/16 15:29
  */
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class RaffleOrderTest {
+public class RaffleActivityAccountQuotaServiceTest {
 
     @Resource
     private IRaffleActivityAccountQuotaService raffleOrder;
