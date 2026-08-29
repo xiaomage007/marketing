@@ -12,7 +12,7 @@ import java.util.Date;
  * <p>
  * 不声明显式交换机与绑定,发送走 RabbitMQ <b>默认交换机</b>(exchange 名为空串,
  * broker 内置、无需声明,隐式绑定所有队列):routingKey 即队列名,消息直接投递到同名队列。
- * 因此本事件<b>只依赖队列配置</b> {@code rabbitmq.topology.queues.activity-sku-stock-zero.name},
+ * 因此本事件<b>只依赖队列配置</b> {@code rabbitmq.topology.queues.activity_sku_stock_zero.name},
  * 生产者(exchange=""/routingKey=队列名)与消费者(@RabbitListener 监听同名队列)天然一致。
  * <p>
  * 若后续需要 fanout 广播、topic 路由等复杂拓扑,再在 yml 配置 exchanges/bindings 段并
@@ -23,8 +23,8 @@ import java.util.Date;
 @Component
 public class ActivitySkuStockZeroMessageEvent extends BaseEvent<Long> {
 
-    /** 目标队列名,对应 rabbitmq.topology.queues.activity-sku-stock-zero.name。 */
-    @Value("${rabbitmq.topology.queues.activity-sku-stock-zero.name}")
+    /** 目标队列名,对应 rabbitmq.topology.queues.activity_sku_stock_zero.name。 */
+    @Value("${rabbitmq.topology.queues.activity_sku_stock_zero.name}")
     private String queue;
 
     @Override

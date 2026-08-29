@@ -25,21 +25,21 @@ import java.util.Map;
  * rabbitmq:
  *   topology:
  *     exchanges:
- *       activity-sku-stock-zero:            # 逻辑 key,bindings 通过它引用
+ *       activity_sku_stock_zero:            # 逻辑 key,bindings 通过它引用
  *         type: direct                       # direct | fanout | topic | headers
  *         name: activity_sku_stock_zero_exchange   # 省略时默认取 key
  *         routing-key: activity_sku_stock_zero     # 默认路由键(发送&绑定共用),fanout 可省略
  *         durable: true
  *         auto-delete: false
  *     queues:
- *       activity-sku-stock-zero:
+ *       activity_sku_stock_zero:
  *         name: activity_sku_stock_zero      # 省略时默认取 key
  *         durable: true
  *     bindings:
- *       activity-sku-stock-zero:
+ *       activity_sku_stock_zero:
  *         destination-type: queue            # queue | exchange(exchange 到 exchange 绑定)
- *         source: activity-sku-stock-zero          # exchanges 段的逻辑 key
- *         destination: activity-sku-stock-zero     # queues(或 exchanges)段的逻辑 key
+ *         source: activity_sku_stock_zero          # exchanges 段的逻辑 key
+ *         destination: activity_sku_stock_zero     # queues(或 exchanges)段的逻辑 key
  *         routing-key: activity_sku_stock_zero     # 省略时继承 source 交换机的 routing-key
  * }</pre>
  *
