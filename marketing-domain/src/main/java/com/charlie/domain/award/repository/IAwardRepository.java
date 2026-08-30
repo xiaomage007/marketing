@@ -1,5 +1,7 @@
 package com.charlie.domain.award.repository;
 
+import com.charlie.domain.award.model.aggregate.UserAwardRecordAggregate;
+
 /**
  * @description: 奖品仓储服务
  * @author: Charlie
@@ -7,6 +9,10 @@ package com.charlie.domain.award.repository;
  */
 public interface IAwardRepository {
 
-
+    /**
+     * 保存中奖记录
+     * @param userAwardRecordAggregate
+     */
+    void saveUserAwardRecord(UserAwardRecordAggregate userAwardRecordAggregate);
 
 }

@@ -2,6 +2,7 @@ package com.charlie.domain.task.service;
 
 import com.charlie.domain.task.model.entity.TaskEntity;
 import com.charlie.domain.task.repository.ITaskRepository;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -12,6 +13,7 @@ import java.util.List;
  * @author: Charlie
  * @date: 2026/8/30 9:32
  */
+@Service
 public class TaskService implements ITaskService {
 
     @Resource
