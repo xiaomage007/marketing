@@ -305,8 +305,8 @@ public class ActivityRepository implements IActivityRepository {
      * <pre>{@code
      * DECR activity_sku_stock_count_key9001  -> 返回 0
      * }</pre>
-     * 进入分支②：发布 {@code activity_sku_stock_zero} 事件到 MQ（topic 由
-     * {@code activitySkuStockZeroMessageEvent.topic()} 提供），消费者收到后落库
+     * 进入分支②：发布 {@code activity_sku_stock_zero} 事件到 MQ（默认交换机 + 路由键
+     * 由 {@code activitySkuStockZeroMessageEvent.routingKey()} 提供），消费者收到后落库
      * {@code raffle_activity_sku.stock_count_surplus = 0}；{@code return false}，
      * 调用方（{@code ActivitySkuStockActionChain}）不再入延迟队列。
      *

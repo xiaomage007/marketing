@@ -132,12 +132,15 @@ spring:
 #   ② 只配 exchanges:fanout/direct 广播场景,生产者只管发,消费方自行建队列绑定
 #   ③ 三段全配:标准「交换机 --[routing-key]--> 队列」路由场景
 # 配置项的 key 是逻辑名(bindings 通过它引用),name 是 broker 物理名(name 省略时默认取 key)
-# 当前 activity_sku_stock_zero 即场景①:只声明队列,EventPublisher 发送到默认交换机
+# 当前 activity_sku_stock_zero / send_award 即场景①:只声明队列,EventPublisher 发送到默认交换机
 rabbitmq:
   topology:
     queues:
-      activity-sku-stock-zero:
+      activity_sku_stock_zero:
         name: activity_sku_stock_zero
+        durable: true                           # broker 重启后队列及消息不丢失
+      send_award:
+        name: send_award
         durable: true                           # broker 重启后队列及消息不丢失
 
 # 日志

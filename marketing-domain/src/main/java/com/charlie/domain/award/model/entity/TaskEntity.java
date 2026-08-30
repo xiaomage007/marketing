@@ -1,19 +1,24 @@
-package com.charlie.infrastructure.persistent.po;
+package com.charlie.domain.award.model.entity;
 
+import com.charlie.domain.award.event.SendAwardMessageEvent;
+import com.charlie.domain.award.model.valobj.TaskStateVO;
+import com.charlie.types.event.BaseEvent;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-
-import java.util.Date;
+import lombok.NoArgsConstructor;
 
 /**
- * @description: 任务表，发送MQ（落库消息与 RabbitMQ 投递参数）
+ * @description: 任务实体对象
  * @author: Charlie
- * @date: 2026/8/24 9:37
+ * @date: 2026/8/30 7:55
  */
 @Data
-public class Task {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class TaskEntity {
 
-    /** 自增ID */
-    private String id;
     /** 用户ID（分库路由键，与 marketing_01/marketing_02 分库键一致） */
     private String userId;
     /** 消息唯一ID（与 BaseEvent.EventMessage.id 对齐，消费侧用作幂等键） */
@@ -25,12 +30,8 @@ public class Task {
     /** 目标队列名（与 BaseEvent.queue() 对齐）；fanout 等无路由场景可为空，便于消费侧 @RabbitListener 定位 */
     private String queue;
     /** 消息主体 */
-    private String message;
+    private BaseEvent.EventMessage<SendAwardMessageEvent.SendAwardMessage> message;
     /** 任务状态；create-待发送、completed-发送成功、fail-发送失败 */
-    private String state;
-    /** 创建时间 */
-    private Date createTime;
-    /** 更新时间 */
-    private Date updateTime;
+    private TaskStateVO state;
 
 }

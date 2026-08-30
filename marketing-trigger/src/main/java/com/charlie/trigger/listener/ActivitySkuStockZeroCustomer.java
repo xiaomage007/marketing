@@ -45,7 +45,7 @@ import javax.annotation.Resource;
  *   T0 + 5s :UpdateActivitySkuStockJob 取出第 1 条 → DB 写 surplus = 99(剩 49 笔排队)
  *   T0 + 6s :用户对 sku=901L 发起第 51 次抽奖 → DECR surplus:1 → 0
  *             → ActivityRepository.subtractionActivitySkuStock 检测到 surplus == 0 →
- *               发布消息到 topic "activity_sku_stock_zero":
+ *               发布消息到队列 "activity_sku_stock_zero"(默认交换机,路由键=队列名):
  *               {"id":"88012345678","timestamp":"...","data":901}
  *             → return false(告诉上游「库存已空,本笔拒绝」)
  *
