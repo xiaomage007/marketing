@@ -1,5 +1,8 @@
 package com.charlie.domain.award.model.entity;
 
+import com.charlie.domain.award.event.SendAwardMessageEvent;
+import com.charlie.domain.award.model.valobj.TaskStateVO;
+import com.charlie.types.event.BaseEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,8 +23,6 @@ public class TaskEntity {
     private String userId;
     /** 消息唯一ID（与 BaseEvent.EventMessage.id 对齐，消费侧用作幂等键） */
     private String messageId;
-    /** 业务主题（如 activity_sku_stock_zero，按业务语义聚合） */
-    private String topic;
     /** RabbitMQ 交换机名；空串表示走 broker 默认交换机（与 BaseEvent.exchange() 对齐） */
     private String exchange;
     /** RabbitMQ 路由键；默认交换机下等于队列名（与 BaseEvent.routingKey() 对齐） */
@@ -29,8 +30,8 @@ public class TaskEntity {
     /** 目标队列名（与 BaseEvent.queue() 对齐）；fanout 等无路由场景可为空，便于消费侧 @RabbitListener 定位 */
     private String queue;
     /** 消息主体 */
-    private String message;
+    private BaseEvent.EventMessage<SendAwardMessageEvent.SendAwardMessage> message;
     /** 任务状态；create-待发送、completed-发送成功、fail-发送失败 */
-    private String state;
+    private TaskStateVO state;
 
 }

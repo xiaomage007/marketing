@@ -1,19 +1,15 @@
-package com.charlie.infrastructure.persistent.po;
+package com.charlie.domain.task.model.entity;
 
 import lombok.Data;
 
-import java.util.Date;
-
 /**
- * @description: 任务表，发送MQ（落库消息与 RabbitMQ 投递参数）
+ * @description: 任务实体对象
  * @author: Charlie
- * @date: 2026/8/24 9:37
+ * @date: 2026/8/30 9:26
  */
 @Data
-public class Task {
+public class TaskEntity {
 
-    /** 自增ID */
-    private String id;
     /** 用户ID（分库路由键，与 marketing_01/marketing_02 分库键一致） */
     private String userId;
     /** 消息唯一ID（与 BaseEvent.EventMessage.id 对齐，消费侧用作幂等键） */
@@ -26,11 +22,4 @@ public class Task {
     private String queue;
     /** 消息主体 */
     private String message;
-    /** 任务状态；create-待发送、completed-发送成功、fail-发送失败 */
-    private String state;
-    /** 创建时间 */
-    private Date createTime;
-    /** 更新时间 */
-    private Date updateTime;
-
 }

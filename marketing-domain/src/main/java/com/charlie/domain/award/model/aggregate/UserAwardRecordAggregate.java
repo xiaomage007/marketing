@@ -1,5 +1,5 @@
 package com.charlie.domain.award.model.aggregate;
-
+import com.charlie.domain.award.model.entity.TaskEntity;
 import com.charlie.domain.award.model.entity.UserAwardRecordEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
