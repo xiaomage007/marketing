@@ -48,8 +48,8 @@ public class EventPublisher {
     /**
      * fanout 广播发送 - 只指定交换机,fanout 类型交换机会忽略路由键,消息投递到所有绑定队列。
      *
-     * @param exchange      目标 Exchange 名(对应 rabbitmq.topology.exchanges.*.name)
-     * @param eventMessage  事件消息体,会被序列化为 JSON
+     * @param exchange     目标 Exchange 名(对应 rabbitmq.topology.exchanges.*.name)
+     * @param eventMessage 事件消息体,会被序列化为 JSON
      */
     public void publish(String exchange, BaseEvent.EventMessage<?> eventMessage) {
         publish(exchange, "", eventMessage);
@@ -69,6 +69,23 @@ public class EventPublisher {
             log.info("发送MQ消息 exchange:{} routingKey:{} message:{}", exchange, routingKey, messageJson);
         } catch (Exception e) {
             log.error("发送MQ消息失败 exchange:{} routingKey:{} message:{}", exchange, routingKey, JSON.toJSONString(eventMessage), e);
+            throw e;
+        }
+    }
+
+    /**
+     * 显式指定目标发送 - exchange 与 routingKey 由调用方运行时决定。
+     *
+     * @param exchange    目标 Exchange 名
+     * @param routingKey  目标 routingKey
+     * @param messageJson 事件消息体
+     */
+    public void publish(String exchange, String routingKey, String messageJson) {
+        try {
+            rabbitTemplate.convertAndSend(exchange, routingKey, messageJson);
+            log.info("发送MQ消息 exchange:{} routingKey:{} message:{}", exchange, routingKey, messageJson);
+        } catch (Exception e) {
+            log.error("发送MQ消息失败 exchange:{} routingKey:{} message:{}", exchange, routingKey, messageJson, e);
             throw e;
         }
     }
