@@ -180,7 +180,7 @@ CREATE TABLE `task`
     `update_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY          `idx_state` (`state`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务表，发送MQ（落库消息与 RabbitMQ 投递参数，调度器按 state 扫描推进）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务表，发送MQ（落库消息与 RabbitMQ 投递参数）';
 
 
 DROP TABLE IF EXISTS `user_award_record_000`;
