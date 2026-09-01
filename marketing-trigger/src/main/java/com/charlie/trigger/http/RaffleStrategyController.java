@@ -89,6 +89,14 @@ public class RaffleStrategyController implements IRaffleStrategyService {
             }
             // 2. 查询奖品配置
             List<StrategyAwardEntity> strategyAwardEntities = raffleAward.queryRaffleStrategyAwardListByActivityId(request.getActivityId());
+            // 3. 获取规则配置
+            String[] treeIds = strategyAwardEntities.stream()
+                    .map(StrategyAwardEntity::getRuleModels)
+                    .filter(ruleModel -> ruleModel != null && !ruleModel.isEmpty())
+                    .toArray(String[]::new);
+            // 4. 查询规则配置 - 获取奖品的解锁限制，抽奖N次后解锁
+
+
             List<RaffleAwardListResponseDTO> raffleAwardListResponseDTOS = new ArrayList<>(strategyAwardEntities.size());
             for (StrategyAwardEntity strategyAward : strategyAwardEntities) {
                 raffleAwardListResponseDTOS.add(RaffleAwardListResponseDTO.builder()
