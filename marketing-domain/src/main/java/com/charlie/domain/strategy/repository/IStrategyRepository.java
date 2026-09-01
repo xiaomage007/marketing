@@ -95,4 +95,6 @@ public interface IStrategyRepository {
      */
     Integer queryTodayUserRaffleCount(String userId, Long strategyId);
 
+    Map<String, Integer> queryAwardRuleLockCount(String[] treeIds);
+
 }

@@ -7,6 +7,7 @@ import com.charlie.domain.strategy.model.valobj.StrategyAwardStockKeyVO;
 import com.charlie.domain.strategy.repository.IStrategyRepository;
 import com.charlie.domain.strategy.service.AbstractRaffleStrategy;
 import com.charlie.domain.strategy.service.IRaffleAward;
+import com.charlie.domain.strategy.service.IRaffleRule;
 import com.charlie.domain.strategy.service.IRaffleStock;
 import com.charlie.domain.strategy.service.armory.IStrategyDispatch;
 import com.charlie.domain.strategy.service.rule.chain.ILogicChain;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description: 默认的抽奖策略实现
@@ -25,7 +27,7 @@ import java.util.List;
  */
 @Slf4j
 @Service
-public class DefaultRaffleStrategy extends AbstractRaffleStrategy implements IRaffleStock, IRaffleAward {
+public class DefaultRaffleStrategy extends AbstractRaffleStrategy implements IRaffleStock, IRaffleAward, IRaffleRule {
 
     public DefaultRaffleStrategy(DefaultChainFactory defaultChainFactory, DefaultTreeFactory defaultTreeFactory, IStrategyDispatch strategyDispatch, IStrategyRepository repository) {
         super(defaultChainFactory, defaultTreeFactory, strategyDispatch, repository);
@@ -53,7 +55,8 @@ public class DefaultRaffleStrategy extends AbstractRaffleStrategy implements IRa
 
     @Override
     public StrategyAwardStockKeyVO takeQueueValue() throws InterruptedException {
-        return repository.takeQueueValue();    }
+        return repository.takeQueueValue();
+    }
 
     @Override
     public void updateStrategyAwardStock(Long strategyId, Integer awardId) {
@@ -62,5 +65,18 @@ public class DefaultRaffleStrategy extends AbstractRaffleStrategy implements IRa
 
     @Override
     public List<StrategyAwardEntity> queryRaffleStrategyAwardList(Long strategyId) {
-        return repository.queryStrategyAwardList(strategyId);    }
+        return repository.queryStrategyAwardList(strategyId);
+    }
+
+    @Override
+    public List<StrategyAwardEntity> queryRaffleStrategyAwardListByActivityId(Long activityId) {
+        Long strategyId = repository.queryStrategyIdByActivityId(activityId);
+        return queryRaffleStrategyAwardList(strategyId);
+    }
+
+    @Override
+    public Map<String, Integer> queryAwardRuleLockCount(String... treeIds) {
+        return repository.queryAwardRuleLockCount(treeIds);
+    }
+
 }
