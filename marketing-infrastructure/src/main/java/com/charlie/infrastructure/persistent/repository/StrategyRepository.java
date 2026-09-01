@@ -17,10 +17,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.charlie.types.enums.ResponseCode.UN_ASSEMBLED_STRATEGY_ARMORY;
@@ -362,6 +359,19 @@ public class StrategyRepository implements IStrategyRepository {
         if (null == raffleActivityAccountDay) return 0;
         // 总次数 - 剩余的，等于今日参与的
         return raffleActivityAccountDay.getDayCount() - raffleActivityAccountDay.getDayCountSurplus();
+    }
+
+    @Override
+    public Map<String, Integer> queryAwardRuleLockCount(String[] treeIds) {
+        if (null == treeIds || treeIds.length == 0) return new HashMap<>();
+        List<RuleTreeNode> ruleTreeNodes = ruleTreeNodeDao.queryRuleLocks(treeIds);
+        Map<String, Integer> resultMap = new HashMap<>();
+        for (RuleTreeNode node : ruleTreeNodes) {
+            String treeId = node.getTreeId();
+            Integer ruleValue = Integer.valueOf(node.getRuleValue());
+            resultMap.put(treeId, ruleValue);
+        }
+        return resultMap;
     }
 
 }

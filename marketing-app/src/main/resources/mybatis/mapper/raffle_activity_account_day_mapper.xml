@@ -13,21 +13,31 @@
         <result column="update_time" property="updateTime"/>
     </resultMap>
 
-    <insert id="insertActivityAccountDay" parameterType="com.charlie.infrastructure.persistent.po.RaffleActivityAccountDay">
+    <insert id="insertActivityAccountDay"
+            parameterType="com.charlie.infrastructure.persistent.po.RaffleActivityAccountDay">
         insert into raffle_activity_account_day(
         user_id, activity_id, day, day_count, day_count_surplus, create_time, update_time)
         values
         (#{userId}, #{activityId}, #{day}, #{dayCount}, #{dayCountSurplus}, now(), now())
     </insert>
 
-    <update id="updateActivityAccountDaySubtractionQuota" parameterType="com.charlie.infrastructure.persistent.po.RaffleActivityAccountDay">
+    <update id="updateActivityAccountDaySubtractionQuota"
+            parameterType="com.charlie.infrastructure.persistent.po.RaffleActivityAccountDay">
         update raffle_activity_account_day
         set day_count_surplus = day_count_surplus - 1, update_time = now()
         where user_id = #{userId} and activity_id = #{activityId} and day = #{day} and day_count_surplus > 0
     </update>
 
-    <select id="queryActivityAccountDayByUserId" parameterType="com.charlie.infrastructure.persistent.po.RaffleActivityAccountDay" resultMap="dataMap">
+    <select id="queryActivityAccountDayByUserId"
+            parameterType="com.charlie.infrastructure.persistent.po.RaffleActivityAccountDay" resultMap="dataMap">
         select user_id, activity_id, day, day_count, day_count_surplus
+        from raffle_activity_account_day
+        where user_id = #{userId} and activity_id = #{activityId} and day = #{day}
+    </select>
+    <select id="queryRaffleActivityAccountDayPartakeCount"
+            parameterType="com.charlie.infrastructure.persistent.po.RaffleActivityAccountDay"
+            resultType="java.lang.Integer">
+        select day_count - day_count_surplus
         from raffle_activity_account_day
         where user_id = #{userId} and activity_id = #{activityId} and day = #{day}
     </select>
