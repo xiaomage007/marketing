@@ -1,10 +1,13 @@
 package com.charlie.domain.strategy.service.rule.tree.impl;
 
 import com.charlie.domain.strategy.model.valobj.RuleLogicCheckTypeVO;
+import com.charlie.domain.strategy.repository.IStrategyRepository;
 import com.charlie.domain.strategy.service.rule.tree.ILogicTreeNode;
 import com.charlie.domain.strategy.service.rule.tree.factory.DefaultTreeFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 
 /**
  * 决策树节点 - 抽奖次数门槛锁（rule_lock）
@@ -31,13 +34,8 @@ import org.springframework.stereotype.Component;
 @Component("rule_lock")
 public class RuleLockLogicTreeNode implements ILogicTreeNode {
 
-    /**
-     * 用户累计抽奖次数的占位值。
-     * <p>
-     * TODO: 替换为从 Redis（或 DB）按 userId 实时查询的累计抽奖次数；
-     * 当前硬编码为 10L 仅用于本地调试和单测。
-     */
-    private Long userRaffleCount = 10L;
+    @Resource
+    private IStrategyRepository repository;
 
     @Override
     public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId, String ruleValue) {
@@ -50,6 +48,9 @@ public class RuleLockLogicTreeNode implements ILogicTreeNode {
         } catch (Exception e) {
             throw new RuntimeException("规则过滤-次数锁异常 ruleValue: " + ruleValue + " 配置不正确");
         }
+
+        // 查询用户抽奖次数 - 当天的；策略ID:活动ID 1:1 的配置，可以直接用 strategyId 查询。
+        Integer userRaffleCount = repository.queryTodayUserRaffleCount(userId, strategyId);
 
         // 达到门槛 → 放行，让决策树继续向下寻找其他规则节点
         if (userRaffleCount >= raffleCount) {

@@ -1,6 +1,9 @@
 package com.charlie.domain.activity.model.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @description: 参与抽奖活动实体对象
@@ -8,6 +11,9 @@ import lombok.Data;
  * @date: 2026/8/25 7:58
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PartakeRaffleActivityEntity {
 
     /**

@@ -2,8 +2,8 @@ package com.charlie.api;
 
 import com.charlie.api.dto.RaffleAwardListRequestDTO;
 import com.charlie.api.dto.RaffleAwardListResponseDTO;
-import com.charlie.api.dto.RaffleRequestDTO;
-import com.charlie.api.dto.RaffleResponseDTO;
+import com.charlie.api.dto.RaffleStrategyRequestDTO;
+import com.charlie.api.dto.RaffleStrategyResponseDTO;
 import com.charlie.api.response.Response;
 
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  * @author: Charlie
  * @date: 2026/8/5 7:30
  */
-public interface IRaffleService {
+public interface IRaffleStrategyService {
     /**
      * 策略装配接口
      *
@@ -36,6 +36,6 @@ public interface IRaffleService {
      * @param requestDTO 请求参数
      * @return 抽奖结果
      */
-    Response<RaffleResponseDTO> randomRaffle(RaffleRequestDTO requestDTO);
+    Response<RaffleStrategyResponseDTO> randomRaffle(RaffleStrategyRequestDTO requestDTO);
 
 }

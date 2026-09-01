@@ -31,6 +31,12 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
+    public boolean assembleLotteryStrategyByActivityId(Long activityId) {
+        Long strategyId = repository.queryStrategyIdByActivityId(activityId);
+        return assembleLotteryStrategy(strategyId);
+    }
+
+    @Override
     public boolean assembleLotteryStrategy(Long strategyId) {
         // 1. 查询策略配置
         // 详细：通过仓储查询当前策略下的全部奖品配置（含奖品ID、概率、库存等），仓储内部已带 Redis 缓存
