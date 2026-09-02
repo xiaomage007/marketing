@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Date;
 
 /**
  * 决策树节点 - 抽奖次数门槛锁（rule_lock）
@@ -38,7 +39,7 @@ public class RuleLockLogicTreeNode implements ILogicTreeNode {
     private IStrategyRepository repository;
 
     @Override
-    public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId, String ruleValue) {
+    public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId, String ruleValue, Date endDateTime) {
         log.info("规则过滤-次数锁 userId:{} strategyId:{} awardId:{}", userId, strategyId, awardId);
 
         // ruleValue 形如 "10"，解析为门槛值；解析失败直接抛错，避免规则配置错误被静默吞掉

@@ -139,6 +139,7 @@ public class RaffleActivityController implements IRaffleActivityService {
             RaffleAwardEntity raffleAwardEntity = raffleStrategy.performRaffle(RaffleFactorEntity.builder()
                     .userId(orderEntity.getUserId())
                     .strategyId(orderEntity.getStrategyId())
+                    .endDateTime(orderEntity.getEndDateTime())
                     .build());
             // 4. 存放结果 - 写入中奖记录
             // 详细：用参与订单信息与中奖结果构建用户中奖记录，领域服务内部同时构建一条发奖MQ任务，
