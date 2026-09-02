@@ -3,10 +3,13 @@ package com.charlie.domain.strategy.service.rule.tree;
 import com.charlie.domain.strategy.model.valobj.RuleLogicCheckTypeVO;
 import com.charlie.domain.strategy.service.rule.tree.factory.DefaultTreeFactory;
 
+import java.util.Date;
+
 /**
  * 决策树节点接口。每个实现类对应一种规则（如次数锁、库存扣减、兜底奖励），
- *               由 Spring 以 bean 名注册，被 {@link com.charlie.domain.strategy.service.rule.tree.factory.DefaultTreeFactory}
- *               收集为 {@code Map<String, ILogicTreeNode>}，key=bean 名（即规则 code）。
+ * 由 Spring 以 bean 名注册，被 {@link com.charlie.domain.strategy.service.rule.tree.factory.DefaultTreeFactory}
+ * 收集为 {@code Map<String, ILogicTreeNode>}，key=bean 名（即规则 code）。
+ *
  * @author Charlie
  */
 public interface ILogicTreeNode {
@@ -29,6 +32,6 @@ public interface ILogicTreeNode {
      * @param ruleValue  节点的规则值（如门槛值、积分区间等），由 {@code rule_tree_node.rule_value} 透传
      * @return 决策动作实体，包含校验类型与（可选）奖品数据
      */
-    DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId, String ruleValue);
+    DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId, String ruleValue, Date endDateTime);
 
 }
