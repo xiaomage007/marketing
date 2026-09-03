@@ -1,9 +1,3 @@
-CREATE
-database if NOT EXISTS `marketing_01` default character set utf8mb4;
-use
-`marketing_01`;
-
-
 DROP TABLE IF EXISTS `raffle_activity_account`;
 
 CREATE TABLE `raffle_activity_account`
@@ -18,16 +12,19 @@ CREATE TABLE `raffle_activity_account`
     `month_count`         int(8) NOT NULL COMMENT '月次数',
     `month_count_surplus` int(8) NOT NULL COMMENT '月次数-剩余',
     `create_time`         datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`         datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
+    `update_time`         datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_user_id_activity_id` (`user_id`,`activity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='抽奖活动账户表';
 
+LOCK
+TABLES `raffle_activity_account` WRITE;
+/*!40000 ALTER TABLE `raffle_activity_account` DISABLE KEYS */;
+
 INSERT INTO `raffle_activity_account` (`id`, `user_id`, `activity_id`, `total_count`, `total_count_surplus`,
                                        `day_count`, `day_count_surplus`, `month_count`, `month_count_surplus`,
                                        `create_time`, `update_time`)
-VALUES (3, 'Charlie', 100301, 45, 17, 45, 18, 45, 18, '2024-03-23 16:38:57', '2024-04-13 15:25:13');
-
+VALUES (3, 'Charlie', 100301, 63, 60, 63, 60, 63, 60, '2024-03-23 16:38:57', '2024-04-27 15:00:22');
 
 DROP TABLE IF EXISTS `raffle_activity_account_day`;
 
@@ -50,7 +47,9 @@ INSERT INTO `raffle_activity_account_day` (`id`, `user_id`, `activity_id`, `day`
                                            `create_time`, `update_time`)
 VALUES (2, 'Charlie', 100301, '2024-04-05', 45, 44, '2024-04-05 17:10:31', '2024-04-05 17:10:31'),
        (3, 'Charlie', 100301, '2024-04-08', 45, 44, '2024-04-08 22:52:47', '2024-04-08 22:52:47'),
-       (4, 'Charlie', 100301, '2024-04-13', 45, 23, '2024-04-13 11:44:10', '2024-04-13 15:25:13');
+       (4, 'Charlie', 100301, '2024-04-13', 45, 23, '2024-04-13 11:44:10', '2024-04-20 10:51:09'),
+       (7, 'Charlie', 100301, '2024-04-20', 45, 13, '2024-04-20 16:50:38', '2024-04-20 16:50:38'),
+       (9, 'Charlie', 100301, '2024-04-27', 63, 62, '2024-04-27 13:26:49', '2024-04-27 15:07:28');
 
 
 DROP TABLE IF EXISTS `raffle_activity_account_month`;
@@ -72,7 +71,7 @@ CREATE TABLE `raffle_activity_account_month`
 
 INSERT INTO `raffle_activity_account_month` (`id`, `user_id`, `activity_id`, `month`, `month_count`,
                                              `month_count_surplus`, `create_time`, `update_time`)
-VALUES (5, 'Charlie', 100301, '2024-04', 45, 17, '2024-04-05 17:10:31', '2024-04-13 15:25:13');
+VALUES (5, 'Charlie', 100301, '2024-04', 45, 42, '2024-04-05 17:10:31', '2024-04-27 15:00:22');
 
 
 DROP TABLE IF EXISTS `raffle_activity_order_000`;
@@ -96,15 +95,9 @@ CREATE TABLE `raffle_activity_order_000`
     `update_time`     datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_order_id` (`order_id`),
+    UNIQUE KEY `uq_out_business_no` (`out_business_no`),
     KEY               `idx_user_id_activity_id` (`user_id`,`activity_id`,`state`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='抽奖活动单';
-
-
-INSERT INTO `raffle_activity_order_000` (`id`, `user_id`, `sku`, `activity_id`, `activity_name`, `strategy_id`,
-                                         `order_id`, `order_time`, `total_count`, `day_count`, `month_count`, `state`,
-                                         `out_business_no`, `create_time`, `update_time`)
-VALUES (3, 'Charlie', 9011, 100301, '测试活动', 100006, '383240888158', '2024-03-23 04:38:23', 1, 1, 1, 'completed',
-        '700091009111', '2024-03-23 12:38:23', '2024-03-23 12:38:23');
 
 
 DROP TABLE IF EXISTS `raffle_activity_order_001`;
@@ -128,8 +121,10 @@ CREATE TABLE `raffle_activity_order_001`
     `update_time`     datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_order_id` (`order_id`),
+    UNIQUE KEY `uq_out_business_no` (`out_business_no`),
     KEY               `idx_user_id_activity_id` (`user_id`,`activity_id`,`state`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='抽奖活动单';
+
 
 INSERT INTO `raffle_activity_order_001` (`id`, `user_id`, `sku`, `activity_id`, `activity_name`, `strategy_id`,
                                          `order_id`, `order_time`, `total_count`, `day_count`, `month_count`, `state`,
@@ -223,7 +218,43 @@ VALUES (10, 'Charlie', 9011, 100301, '测试活动', 100006, '973296627434', '20
        (54, 'Charlie', 9011, 100301, '测试活动', 100006, '094263379883', '2024-03-30 09:10:06', 1, 1, 1, 'completed',
         '746237303851', '2024-03-30 17:10:06', '2024-03-30 17:10:06'),
        (56, 'Charlie', 9011, 100301, '测试活动', 100006, '381900087970', '2024-04-05 06:19:30', 1, 1, 1, 'completed',
-        '700091009119', '2024-04-05 14:19:30', '2024-04-05 14:19:30');
+        '700091009119', '2024-04-05 14:19:30', '2024-04-05 14:19:30'),
+       (58, 'Charlie', 9011, 100301, '测试活动', 100006, '434016169087', '2024-04-21 10:36:47', 1, 1, 1, 'completed',
+        '7000910091001', '2024-04-21 18:36:46', '2024-04-21 18:36:46'),
+       (59, 'Charlie', 9011, 100301, '测试活动', 100006, '237123329610', '2024-04-21 10:37:20', 1, 1, 1, 'completed',
+        '7000910091002', '2024-04-21 18:37:19', '2024-04-21 18:37:19'),
+       (60, 'Charlie', 9011, 100301, '测试活动', 100006, '195450920247', '2024-04-21 10:37:41', 1, 1, 1, 'completed',
+        '7000910091003', '2024-04-21 18:37:41', '2024-04-21 18:37:41'),
+       (61, 'Charlie', 9011, 100301, '测试活动', 100006, '910880814122', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '832719848802', '2024-04-21 18:40:24', '2024-04-21 18:40:24'),
+       (62, 'Charlie', 9011, 100301, '测试活动', 100006, '521217042254', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '041601984320', '2024-04-21 18:40:24', '2024-04-21 18:40:24'),
+       (63, 'Charlie', 9011, 100301, '测试活动', 100006, '299040315943', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '250243206703', '2024-04-21 18:40:24', '2024-04-21 18:40:24'),
+       (64, 'Charlie', 9011, 100301, '测试活动', 100006, '659684017852', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '460921198062', '2024-04-21 18:40:24', '2024-04-21 18:40:24'),
+       (65, 'Charlie', 9011, 100301, '测试活动', 100006, '062475079006', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '161250520802', '2024-04-21 18:40:24', '2024-04-21 18:40:24'),
+       (66, 'Charlie', 9011, 100301, '测试活动', 100006, '396270866526', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '916592331247', '2024-04-21 18:40:24', '2024-04-21 18:40:24'),
+       (67, 'Charlie', 9011, 100301, '测试活动', 100006, '753460308738', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '342055194740', '2024-04-21 18:40:25', '2024-04-21 18:40:25'),
+       (68, 'Charlie', 9011, 100301, '测试活动', 100006, '747563696488', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '196922733111', '2024-04-21 18:40:25', '2024-04-21 18:40:25'),
+       (69, 'Charlie', 9011, 100301, '测试活动', 100006, '213422763673', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '111297173057', '2024-04-21 18:40:25', '2024-04-21 18:40:25'),
+       (70, 'Charlie', 9011, 100301, '测试活动', 100006, '550960819802', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '826915908946', '2024-04-21 18:40:25', '2024-04-21 18:40:25'),
+       (71, 'Charlie', 9011, 100301, '测试活动', 100006, '761345538871', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '073735003829', '2024-04-21 18:40:25', '2024-04-21 18:40:25'),
+       (72, 'Charlie', 9011, 100301, '测试活动', 100006, '837744050164', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '613036507854', '2024-04-21 18:40:25', '2024-04-21 18:40:25'),
+       (73, 'Charlie', 9011, 100301, '测试活动', 100006, '766742523760', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '649099837249', '2024-04-21 18:40:25', '2024-04-21 18:40:25'),
+       (74, 'Charlie', 9011, 100301, '测试活动', 100006, '856474163547', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '652903372986', '2024-04-21 18:40:25', '2024-04-21 18:40:25'),
+       (75, 'Charlie', 9011, 100301, '测试活动', 100006, '668775949799', '2024-04-21 10:40:25', 1, 1, 1, 'completed',
+        '097066347980', '2024-04-21 18:40:25', '2024-04-21 18:40:25');
 
 
 DROP TABLE IF EXISTS `raffle_activity_order_002`;
@@ -247,6 +278,7 @@ CREATE TABLE `raffle_activity_order_002`
     `update_time`     datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_order_id` (`order_id`),
+    UNIQUE KEY `uq_out_business_no` (`out_business_no`),
     KEY               `idx_user_id_activity_id` (`user_id`,`activity_id`,`state`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='抽奖活动单';
 
@@ -272,6 +304,7 @@ CREATE TABLE `raffle_activity_order_003`
     `update_time`     datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_order_id` (`order_id`),
+    UNIQUE KEY `uq_out_business_no` (`out_business_no`),
     KEY               `idx_user_id_activity_id` (`user_id`,`activity_id`,`state`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='抽奖活动单';
 
@@ -293,7 +326,6 @@ CREATE TABLE `task`
     PRIMARY KEY (`id`),
     KEY           `idx_state` (`state`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务表，发送MQ（落库消息与 RabbitMQ 投递参数）';
-
 
 DROP TABLE IF EXISTS `user_award_record_000`;
 
@@ -465,7 +497,47 @@ VALUES (1, 'Charlie', 100301, 100006, '313091076458', 101, 'OpenAI 增加使用�
        (64, 'Charlie', 100301, 100006, '605666354632', 101, '随机积分', '2024-04-13 07:25:12', 'create',
         '2024-04-13 15:25:12', '2024-04-13 15:25:12'),
        (65, 'Charlie', 100301, 100006, '604661560037', 107, '2等奖', '2024-04-13 07:25:21', 'create',
-        '2024-04-13 15:25:21', '2024-04-13 15:25:21');
+        '2024-04-13 15:25:21', '2024-04-13 15:25:21'),
+       (66, 'Charlie', 100301, 100006, '212448652580', 105, '4等奖', '2024-04-20 04:09:31', 'create',
+        '2024-04-20 12:09:30', '2024-04-20 12:09:30'),
+       (67, 'Charlie', 100301, 100006, '356729331179', 106, '3等奖', '2024-04-20 04:11:24', 'create',
+        '2024-04-20 12:11:24', '2024-04-20 12:11:24'),
+       (68, 'Charlie', 100301, 100006, '102669494145', 105, '4等奖', '2024-04-20 07:10:58', 'create',
+        '2024-04-20 15:10:58', '2024-04-20 15:10:58'),
+       (69, 'Charlie', 100301, 100006, '730186113832', 107, '2等奖', '2024-04-20 07:43:13', 'create',
+        '2024-04-20 15:43:13', '2024-04-20 15:43:13'),
+       (70, 'Charlie', 100301, 100006, '472281891603', 106, '3等奖', '2024-04-20 08:50:39', 'create',
+        '2024-04-20 16:50:39', '2024-04-20 16:50:39'),
+       (71, 'Charlie', 100301, 100006, '931181504757', 108, '暴走玩偶', '2024-04-27 05:19:39', 'create',
+        '2024-04-27 13:19:38', '2024-04-27 13:19:38'),
+       (72, 'Charlie', 100301, 100006, '664993621684', 101, '随机积分', '2024-04-27 05:27:17', 'create',
+        '2024-04-27 13:27:17', '2024-04-27 13:27:17'),
+       (73, 'Charlie', 100301, 100006, '757674779249', 104, '小米台灯', '2024-04-27 05:27:45', 'create',
+        '2024-04-27 13:27:45', '2024-04-27 13:27:45'),
+       (74, 'Charlie', 100301, 100006, '623885952534', 102, 'OpenAI会员卡', '2024-04-27 05:28:02', 'create',
+        '2024-04-27 13:28:01', '2024-04-27 13:28:01'),
+       (75, 'Charlie', 100301, 100006, '351875766756', 106, '轻奢办公椅', '2024-04-27 05:29:05', 'create',
+        '2024-04-27 13:29:05', '2024-04-27 13:29:05'),
+       (76, 'Charlie', 100301, 100006, '803227763198', 103, '支付优惠券', '2024-04-27 05:29:32', 'create',
+        '2024-04-27 13:29:31', '2024-04-27 13:29:31'),
+       (77, 'Charlie', 100301, 100006, '587527322073', 106, '轻奢办公椅', '2024-04-27 05:29:57', 'create',
+        '2024-04-27 13:29:57', '2024-04-27 13:29:57'),
+       (78, 'Charlie', 100301, 100006, '552928609772', 107, '小霸王游戏机', '2024-04-27 05:30:11', 'create',
+        '2024-04-27 13:30:11', '2024-04-27 13:30:11'),
+       (79, 'Charlie', 100301, 100006, '407462568156', 107, '小霸王游戏机', '2024-04-27 05:36:27', 'create',
+        '2024-04-27 13:36:27', '2024-04-27 13:36:27'),
+       (80, 'Charlie', 100301, 100006, '688519386935', 101, '随机积分', '2024-04-27 05:38:00', 'create',
+        '2024-04-27 13:38:00', '2024-04-27 13:38:00'),
+       (81, 'Charlie', 100301, 100006, '148984382545', 104, '小米台灯', '2024-04-27 05:38:56', 'create',
+        '2024-04-27 13:38:55', '2024-04-27 13:38:55'),
+       (82, 'Charlie', 100301, 100006, '410701479648', 101, '随机积分', '2024-04-27 05:39:18', 'create',
+        '2024-04-27 13:39:18', '2024-04-27 13:39:18'),
+       (83, 'Charlie', 100301, 100006, '521226371540', 101, '随机积分', '2024-04-27 06:59:56', 'create',
+        '2024-04-27 14:59:56', '2024-04-27 14:59:56'),
+       (84, 'Charlie', 100301, 100006, '167000751553', 102, 'OpenAI会员卡', '2024-04-27 07:00:14', 'create',
+        '2024-04-27 15:00:14', '2024-04-27 15:00:14'),
+       (85, 'Charlie', 100301, 100006, '685179511666', 104, '小米台灯', '2024-04-27 07:00:23', 'create',
+        '2024-04-27 15:00:22', '2024-04-27 15:00:22');
 
 
 DROP TABLE IF EXISTS `user_award_record_002`;
@@ -525,7 +597,7 @@ CREATE TABLE `user_raffle_order_000`
     `strategy_id`   bigint(8) NOT NULL COMMENT '抽奖策略ID',
     `order_id`      varchar(12) NOT NULL COMMENT '订单ID',
     `order_time`    datetime    NOT NULL COMMENT '下单时间',
-    `order_state`   varchar(16) NOT NULL DEFAULT 'create' COMMENT '订单状态；create-创建、used-已使用、cancle-已作废',
+    `order_state`   varchar(16) NOT NULL DEFAULT 'create' COMMENT '订单状态；create-创建、used-已使用、cancel-已作废',
     `create_time`   datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`   datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
@@ -545,13 +617,14 @@ CREATE TABLE `user_raffle_order_001`
     `strategy_id`   bigint(8) NOT NULL COMMENT '抽奖策略ID',
     `order_id`      varchar(12) NOT NULL COMMENT '订单ID',
     `order_time`    datetime    NOT NULL COMMENT '下单时间',
-    `order_state`   varchar(16) NOT NULL DEFAULT 'create' COMMENT '订单状态；create-创建、used-已使用、cancle-已作废',
+    `order_state`   varchar(16) NOT NULL DEFAULT 'create' COMMENT '订单状态；create-创建、used-已使用、cancel-已作废',
     `create_time`   datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`   datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_order_id` (`order_id`),
     KEY             `idx_user_id_activity_id` (`user_id`,`activity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户抽奖订单表';
+
 
 INSERT INTO `user_raffle_order_001` (`id`, `user_id`, `activity_id`, `activity_name`, `strategy_id`, `order_id`,
                                      `order_time`, `order_state`, `create_time`, `update_time`)
@@ -608,7 +681,47 @@ VALUES (5, 'Charlie', 100301, '测试活动', 100006, '569856975978', '2024-04-0
        (30, 'Charlie', 100301, '测试活动', 100006, '605666354632', '2024-04-13 07:25:12', 'used',
         '2024-04-13 15:25:12', '2024-04-13 15:25:12'),
        (31, 'Charlie', 100301, '测试活动', 100006, '604661560037', '2024-04-13 07:25:13', 'used',
-        '2024-04-13 15:25:13', '2024-04-13 15:25:21');
+        '2024-04-13 15:25:13', '2024-04-13 15:25:21'),
+       (32, 'Charlie', 100301, '测试活动', 100006, '212448652580', '2024-04-20 04:09:30', 'used',
+        '2024-04-20 12:09:30', '2024-04-20 12:09:30'),
+       (33, 'Charlie', 100301, '测试活动', 100006, '356729331179', '2024-04-20 04:11:24', 'used',
+        '2024-04-20 12:11:24', '2024-04-20 12:11:24'),
+       (34, 'Charlie', 100301, '测试活动', 100006, '102669494145', '2024-04-20 07:10:44', 'used',
+        '2024-04-20 15:10:44', '2024-04-20 15:10:58'),
+       (35, 'Charlie', 100301, '测试活动', 100006, '730186113832', '2024-04-20 07:43:12', 'used',
+        '2024-04-20 15:43:12', '2024-04-20 15:43:13'),
+       (36, 'Charlie', 100301, '测试活动', 100006, '472281891603', '2024-04-20 08:50:37', 'used',
+        '2024-04-20 16:50:38', '2024-04-20 16:50:39'),
+       (37, 'Charlie', 100301, '测试活动', 100006, '931181504757', '2024-04-27 05:19:26', 'used',
+        '2024-04-27 13:19:26', '2024-04-27 13:19:38'),
+       (38, 'Charlie', 100301, '测试活动', 100006, '664993621684', '2024-04-27 05:26:49', 'used',
+        '2024-04-27 13:26:49', '2024-04-27 13:27:17'),
+       (39, 'Charlie', 100301, '测试活动', 100006, '757674779249', '2024-04-27 05:27:45', 'used',
+        '2024-04-27 13:27:45', '2024-04-27 13:27:45'),
+       (40, 'Charlie', 100301, '测试活动', 100006, '623885952534', '2024-04-27 05:28:02', 'used',
+        '2024-04-27 13:28:01', '2024-04-27 13:28:01'),
+       (41, 'Charlie', 100301, '测试活动', 100006, '351875766756', '2024-04-27 05:29:05', 'used',
+        '2024-04-27 13:29:05', '2024-04-27 13:29:05'),
+       (42, 'Charlie', 100301, '测试活动', 100006, '803227763198', '2024-04-27 05:29:32', 'used',
+        '2024-04-27 13:29:31', '2024-04-27 13:29:31'),
+       (43, 'Charlie', 100301, '测试活动', 100006, '587527322073', '2024-04-27 05:29:57', 'used',
+        '2024-04-27 13:29:57', '2024-04-27 13:29:57'),
+       (44, 'Charlie', 100301, '测试活动', 100006, '552928609772', '2024-04-27 05:30:11', 'used',
+        '2024-04-27 13:30:11', '2024-04-27 13:30:11'),
+       (45, 'Charlie', 100301, '测试活动', 100006, '407462568156', '2024-04-27 05:36:27', 'used',
+        '2024-04-27 13:36:27', '2024-04-27 13:36:27'),
+       (46, 'Charlie', 100301, '测试活动', 100006, '688519386935', '2024-04-27 05:38:00', 'used',
+        '2024-04-27 13:38:00', '2024-04-27 13:38:00'),
+       (47, 'Charlie', 100301, '测试活动', 100006, '148984382545', '2024-04-27 05:38:56', 'used',
+        '2024-04-27 13:38:55', '2024-04-27 13:38:55'),
+       (48, 'Charlie', 100301, '测试活动', 100006, '410701479648', '2024-04-27 05:39:18', 'used',
+        '2024-04-27 13:39:18', '2024-04-27 13:39:18'),
+       (49, 'Charlie', 100301, '测试活动', 100006, '521226371540', '2024-04-27 06:59:56', 'used',
+        '2024-04-27 14:59:56', '2024-04-27 14:59:56'),
+       (50, 'Charlie', 100301, '测试活动', 100006, '167000751553', '2024-04-27 07:00:14', 'used',
+        '2024-04-27 15:00:14', '2024-04-27 15:00:14'),
+       (51, 'Charlie', 100301, '测试活动', 100006, '685179511666', '2024-04-27 07:00:23', 'used',
+        '2024-04-27 15:00:22', '2024-04-27 15:00:22');
 
 
 DROP TABLE IF EXISTS `user_raffle_order_002`;
@@ -622,7 +735,7 @@ CREATE TABLE `user_raffle_order_002`
     `strategy_id`   bigint(8) NOT NULL COMMENT '抽奖策略ID',
     `order_id`      varchar(12) NOT NULL COMMENT '订单ID',
     `order_time`    datetime    NOT NULL COMMENT '下单时间',
-    `order_state`   varchar(16) NOT NULL DEFAULT 'create' COMMENT '订单状态；create-创建、used-已使用、cancle-已作废',
+    `order_state`   varchar(16) NOT NULL DEFAULT 'create' COMMENT '订单状态；create-创建、used-已使用、cancel-已作废',
     `create_time`   datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`   datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
@@ -642,15 +755,12 @@ CREATE TABLE `user_raffle_order_003`
     `strategy_id`   bigint(8) NOT NULL COMMENT '抽奖策略ID',
     `order_id`      varchar(12) NOT NULL COMMENT '订单ID',
     `order_time`    datetime    NOT NULL COMMENT '下单时间',
-    `order_state`   varchar(16) NOT NULL DEFAULT 'create' COMMENT '订单状态；create-创建、used-已使用、cancle-已作废',
+    `order_state`   varchar(16) NOT NULL DEFAULT 'create' COMMENT '订单状态；create-创建、used-已使用、cancel-已作废',
     `create_time`   datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`   datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_order_id` (`order_id`),
     KEY             `idx_user_id_activity_id` (`user_id`,`activity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户抽奖订单表';
-
-
-
 
 
