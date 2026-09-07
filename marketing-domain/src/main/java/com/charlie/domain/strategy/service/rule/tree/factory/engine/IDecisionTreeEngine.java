@@ -2,6 +2,8 @@ package com.charlie.domain.strategy.service.rule.tree.factory.engine;
 
 import com.charlie.domain.strategy.service.rule.tree.factory.DefaultTreeFactory;
 
+import java.util.Date;
+
 /**
  * @ClassName: IDecisionTreeEngine
  * @Description: 决策树引擎接口。约定一次规则树执行的入口方法，
@@ -20,6 +22,6 @@ public interface IDecisionTreeEngine {
      * @param awardId    上游已选出的奖品ID
      * @return 最后一次决策产出的 {@link DefaultTreeFactory.StrategyAwardVO}
      */
-    DefaultTreeFactory.StrategyAwardVO process(String userId, Long strategyId, Integer awardId);
+    DefaultTreeFactory.StrategyAwardVO process(String userId, Long strategyId, Integer awardId, Date endDateTime);
 
 }

@@ -7,6 +7,8 @@ import com.charlie.types.common.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
 /**
  * 决策树节点 - 兜底奖励（rule_luck_award）
  * <p>
@@ -30,7 +32,7 @@ import org.springframework.stereotype.Component;
 public class RuleLuckAwardLogicTreeNode implements ILogicTreeNode {
 
     @Override
-    public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId, String ruleValue) {
+    public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId, String ruleValue, Date endDateTime) {
         log.info("规则过滤-兜底奖品 userId:{} strategyId:{} awardId:{} ruleValue:{}", userId, strategyId, awardId, ruleValue);
         // 按 COLON 拆分出「奖品ID」与「奖品规则值」两段；规则值缺失也允许（视为空字符串透传）
         String[] split = ruleValue.split(Constants.COLON);

@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Date;
 
 /**
  * 决策树节点 - 库存扣减（rule_stock）
@@ -45,11 +46,11 @@ public class RuleStockLogicTreeNode implements ILogicTreeNode {
     private IStrategyRepository strategyRepository;
 
     @Override
-    public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId, String ruleValue) {
+    public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId, String ruleValue, Date endDateTime) {
         log.info("规则过滤-库存扣减 userId:{} strategyId:{} awardId:{}", userId, strategyId, awardId);
 
         // Redis 原子扣减（Lua 脚本保证「读-减-写」三步原子，不超卖）
-        Boolean status = strategyDispatch.subtractionAwardStock(strategyId, awardId);
+        Boolean status = strategyDispatch.subtractionAwardStock(strategyId, awardId, endDateTime);
         if (status) {
             log.info("规则过滤-库存扣减-成功 userId:{} strategyId:{} awardId:{}", userId, strategyId, awardId);
 
