@@ -274,3 +274,23 @@ VALUES
 	(13,100001,NULL,1,'rule_weight','4000:102,103,104,105 5000:102,103,104,105,106,107 6000:102,103,104,105,106,107,108,109','消耗6000分，必中奖范围','2023-12-09 10:30:43','2023-12-31 14:51:50'),
 	(14,100001,NULL,1,'rule_blacklist','101:user001,user002,user003','黑名单抽奖，积分兜底','2023-12-09 12:59:45','2024-02-14 18:16:20');
 
+DROP TABLE IF EXISTS `daily_behavior_rebate`;
+
+CREATE TABLE `daily_behavior_rebate`
+(
+    `id`            int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `behavior_type` varchar(16)  NOT NULL COMMENT '行为类型（sign 签到、openai_pay 支付）',
+    `rebate_desc`   varchar(128) NOT NULL COMMENT '返利描述',
+    `rebate_type`   varchar(16)  NOT NULL COMMENT '返利类型（sku 活动库存充值商品、integral 用户活动积分）',
+    `rebate_config` varchar(32)  NOT NULL COMMENT '返利配置',
+    `state`         varchar(12)  NOT NULL COMMENT '状态（open 开启、close 关闭）',
+    `create_time`   datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`   datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY             `idx_behavior_type` (`behavior_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='日常行为返利活动配置';
+
+INSERT INTO `daily_behavior_rebate` (`id`, `behavior_type`, `rebate_desc`, `rebate_type`, `rebate_config`, `state`,
+                                     `create_time`, `update_time`)
+VALUES (1, 'sign', '签到返利-sku额度', 'sku', '9011', 'open', '2024-04-30 09:32:46', '2024-04-30 18:05:23'),
+       (2, 'sign', '签到返利-积分', 'integral', '10', 'open', '2024-04-30 09:32:46', '2024-04-30 18:05:27');
