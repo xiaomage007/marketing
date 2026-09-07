@@ -812,9 +812,9 @@ CREATE TABLE `user_behavior_rebate_order_001`
 
 INSERT INTO `user_behavior_rebate_order_001` (`id`, `user_id`, `order_id`, `behavior_type`, `rebate_desc`,
                                               `rebate_type`, `rebate_config`, `biz_id`, `create_time`, `update_time`)
-VALUES (1, 'xiaofuge', '833814327101', 'sign', '签到返利', 'sku', '9011', 'xiaofuge_sku_20240430',
+VALUES (1, 'Charlie', '833814327101', 'sign', '签到返利', 'sku', '9011', 'xiaofuge_sku_20240430',
         '2024-04-30 18:01:32', '2024-04-30 18:01:32'),
-       (3, 'xiaofuge', '509399206701', 'sign', '签到返利-积分', 'integral', '10', 'xiaofuge_integral_20240430',
+       (3, 'Charlie', '509399206701', 'sign', '签到返利-积分', 'integral', '10', 'xiaofuge_integral_20240430',
         '2024-04-30 18:05:44', '2024-04-30 18:05:44');
 
 
