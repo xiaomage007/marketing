@@ -111,8 +111,14 @@ public class BehaviorRebateRepository implements IBehaviorRebateRepository {
             Task task = new Task();
             task.setUserId(taskEntity.getUserId());
             task.setMessageId(taskEntity.getMessageId());
-
-            eventPublisher.publish(taskEntity.getExchange(), taskEntity.getRoutingKey(), taskEntity.getMessage());
+            try {
+                // 发送消息【在事务外执行，如果失败还有任务补偿】
+                eventPublisher.publish(taskEntity.getExchange(), taskEntity.getRoutingKey(), taskEntity.getMessage());
+                // 更新数据库记录，task 任务表
+                taskDao.updateTaskSendMessageCompleted(task);
+            } catch (Exception e) {
+                log.error("发送返利记录消息失败，等待任务补偿 userId: {} messageId: {}", userId, taskEntity.getMessageId(), e);
+                taskDao.updateTaskSendMessageFail(task);            }
         }
     }
 
