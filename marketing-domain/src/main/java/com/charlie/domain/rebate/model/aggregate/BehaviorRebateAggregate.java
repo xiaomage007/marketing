@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * @description:
+ * @description: 行为返利聚合对象
  * @author: Charlie
  * @date: 2026/9/7 10:45
  */
