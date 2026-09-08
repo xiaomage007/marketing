@@ -90,7 +90,8 @@ public class BehaviorRebateRepository implements IBehaviorRebateRepository {
                         task.setUserId(taskEntity.getUserId());
                         task.setExchange(taskEntity.getExchange());
                         task.setRoutingKey(taskEntity.getRoutingKey());
-                        task.setQueue(taskEntity.getQueue());                        task.setMessageId(taskEntity.getMessageId());
+                        task.setQueue(taskEntity.getQueue());
+                        task.setMessageId(taskEntity.getMessageId());
                         task.setMessage(JSON.toJSONString(taskEntity.getMessage()));
                         task.setState(taskEntity.getState().getCode());
                         taskDao.insert(task);
@@ -118,7 +119,8 @@ public class BehaviorRebateRepository implements IBehaviorRebateRepository {
                 taskDao.updateTaskSendMessageCompleted(task);
             } catch (Exception e) {
                 log.error("发送返利记录消息失败，等待任务补偿 userId: {} messageId: {}", userId, taskEntity.getMessageId(), e);
-                taskDao.updateTaskSendMessageFail(task);            }
+                taskDao.updateTaskSendMessageFail(task);
+            }
         }
     }
 
