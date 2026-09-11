@@ -50,6 +50,7 @@ public class BehaviorRebateService implements IBehaviorRebateService {
                     .rebateType(dailyBehaviorRebateVO.getRebateType())
                     .rebateDesc(dailyBehaviorRebateVO.getRebateDesc())
                     .rebateConfig(dailyBehaviorRebateVO.getRebateConfig())
+                    .outBusinessNo(behaviorEntity.getOutBusinessNo())
                     .bizId(bizId)
                     .build();
             orderIds.add(behaviorRebateOrderEntity.getOrderId());
@@ -87,6 +88,11 @@ public class BehaviorRebateService implements IBehaviorRebateService {
         behaviorRebateRepository.saveUserRebateRecord(behaviorEntity.getUserId(),behaviorRebateAggregates);
         // 4. 返回订单ID集合
         return orderIds;
+    }
+
+    @Override
+    public List<BehaviorRebateOrderEntity> queryOrderByOutBusinessNo(String userId, String outBusinessNo) {
+        return behaviorRebateRepository.queryOrderByOutBusinessNo(userId, outBusinessNo);
     }
 
 }

@@ -33,4 +33,12 @@ public interface IRaffleActivityService {
      */
     Response<Boolean> calendarSignRebate(String userId);
 
+    /**
+     * 判断是否完成日历签到返利接口
+     *
+     * @param userId 用户ID
+     * @return 签到结果 true 已签到，false 未签到
+     */
+    Response<Boolean> isCalendarSignRebate(String userId);
+
 }
