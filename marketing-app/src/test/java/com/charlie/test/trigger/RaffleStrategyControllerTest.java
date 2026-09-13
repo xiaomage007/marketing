@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.charlie.api.IRaffleStrategyService;
 import com.charlie.api.dto.RaffleAwardListRequestDTO;
 import com.charlie.api.dto.RaffleAwardListResponseDTO;
+import com.charlie.api.dto.RaffleStrategyRuleWeightRequestDTO;
+import com.charlie.api.dto.RaffleStrategyRuleWeightResponseDTO;
 import com.charlie.api.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -37,5 +39,17 @@ public class RaffleStrategyControllerTest {
         log.info("请求参数：{}", JSON.toJSONString(request));
         log.info("测试结果：{}", JSON.toJSONString(response));
     }
+
+    @Test
+    public void test_queryRaffleStrategyRuleWeight() {
+        RaffleStrategyRuleWeightRequestDTO request = new RaffleStrategyRuleWeightRequestDTO();
+        request.setUserId("Charlie");
+        request.setActivityId(100301L);
+
+        Response<List<RaffleStrategyRuleWeightResponseDTO>> response = raffleStrategyService.queryRaffleStrategyRuleWeight(request);
+        log.info("请求参数：{}", JSON.toJSONString(request));
+        log.info("测试结果：{}", JSON.toJSONString(response));
+    }
+
 
 }
