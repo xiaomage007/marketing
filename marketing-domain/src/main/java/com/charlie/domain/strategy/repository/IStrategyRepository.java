@@ -4,6 +4,7 @@ import com.charlie.domain.strategy.model.entity.StrategyAwardEntity;
 import com.charlie.domain.strategy.model.entity.StrategyEntity;
 import com.charlie.domain.strategy.model.entity.StrategyRuleEntity;
 import com.charlie.domain.strategy.model.valobj.RuleTreeVO;
+import com.charlie.domain.strategy.model.valobj.RuleWeightVO;
 import com.charlie.domain.strategy.model.valobj.StrategyAwardRuleModelVO;
 import com.charlie.domain.strategy.model.valobj.StrategyAwardStockKeyVO;
 
@@ -110,6 +111,27 @@ public interface IStrategyRepository {
      */
     Integer queryTodayUserRaffleCount(String userId, Long strategyId);
 
+    /**
+     * 根据规则树ID集合查询奖品中加锁数量的配置「部分奖品需要抽奖N次解锁」
+     *
+     * @param treeIds 规则树ID值
+     * @return key 规则树，value rule_lock 加锁值
+     */
     Map<String, Integer> queryAwardRuleLockCount(String[] treeIds);
 
+    /**
+     * 查询奖品权重配置
+     *
+     * @param strategyId 策略ID
+     * @return 权重规则
+     */
+    List<RuleWeightVO> queryAwardRuleWeight(Long strategyId);
+    /**
+     * 根据用户ID、策略ID，查询用户活动账户总使用量
+     *
+     * @param userId     用户ID
+     * @param strategyId 策略ID
+     * @return 使用总量
+     */
+    Integer queryActivityAccountTotalUseCount(String userId, Long strategyId);
 }
