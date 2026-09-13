@@ -4,6 +4,7 @@ import com.charlie.domain.strategy.model.entity.StrategyAwardEntity;
 import com.charlie.domain.strategy.model.entity.StrategyEntity;
 import com.charlie.domain.strategy.model.entity.StrategyRuleEntity;
 import com.charlie.domain.strategy.model.valobj.RuleTreeVO;
+import com.charlie.domain.strategy.model.valobj.RuleWeightVO;
 import com.charlie.domain.strategy.model.valobj.StrategyAwardRuleModelVO;
 import com.charlie.domain.strategy.model.valobj.StrategyAwardStockKeyVO;
 
@@ -112,4 +113,5 @@ public interface IStrategyRepository {
 
     Map<String, Integer> queryAwardRuleLockCount(String[] treeIds);
 
+    List<RuleWeightVO> queryAwardRuleWeight(Long strategyId);
 }

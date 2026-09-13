@@ -575,7 +575,8 @@ public class ActivityRepository implements IActivityRepository {
                 } catch (DuplicateKeyException e) {
                     status.setRollbackOnly();
                     log.error("写入创建参与活动记录，唯一索引冲突 userId: {} activityId: {}", userId, activityId, e);
-                    throw new AppException(ResponseCode.INDEX_DUP.getCode(), e);                }
+                    throw new AppException(ResponseCode.INDEX_DUP.getCode(), e);
+                }
             });
         } finally {
             dbRouter.clear();
@@ -647,7 +648,7 @@ public class ActivityRepository implements IActivityRepository {
         List<RaffleActivitySku> raffleActivitySkus = raffleActivitySkuDao.queryActivitySkuListByActivityId(activityId);
 
         List<ActivitySkuEntity> activitySkuEntities = new ArrayList<>(raffleActivitySkus.size());
-        for (RaffleActivitySku raffleActivitySku:raffleActivitySkus){
+        for (RaffleActivitySku raffleActivitySku : raffleActivitySkus) {
             ActivitySkuEntity activitySkuEntity = new ActivitySkuEntity();
             activitySkuEntity.setSku(raffleActivitySku.getSku());
             activitySkuEntity.setActivityCountId(raffleActivitySku.getActivityCountId());
@@ -655,7 +656,8 @@ public class ActivityRepository implements IActivityRepository {
             activitySkuEntity.setStockCountSurplus(raffleActivitySku.getStockCountSurplus());
             activitySkuEntities.add(activitySkuEntity);
         }
-        return activitySkuEntities;    }
+        return activitySkuEntities;
+    }
 
     @Override
     public Integer queryRaffleActivityAccountDayPartakeCount(Long activityId, String userId) {
@@ -727,6 +729,15 @@ public class ActivityRepository implements IActivityRepository {
         }
 
         return activityAccountEntity;
+    }
+
+    @Override
+    public Integer queryRaffleActivityAccountPartakeCount(Long activityId, String userId) {
+        RaffleActivityAccount raffleActivityAccount = raffleActivityAccountDao.queryActivityAccountByUserId(RaffleActivityAccount.builder()
+                .activityId(activityId)
+                .userId(userId)
+                .build());
+        return raffleActivityAccount.getTotalCount() - raffleActivityAccount.getTotalCountSurplus();
     }
 
 }
