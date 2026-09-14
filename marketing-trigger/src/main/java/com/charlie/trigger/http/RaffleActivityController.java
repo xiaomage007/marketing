@@ -69,7 +69,7 @@ public class RaffleActivityController implements IRaffleActivityService {
      * @return 装配结果
      * <p>
      * 接口：<a href="http://localhost:8091/api/v1/raffle/activity/armory">/api/v1/raffle/activity/armory</a>
-     * 入参：{"activityId":100001,"userId":"Charlie"}
+     * 入参：{"activityId":100001}
      * <p>
      * curl --request GET \
      * --url 'http://localhost:8091/api/v1/raffle/activity/armory?activityId=100301'

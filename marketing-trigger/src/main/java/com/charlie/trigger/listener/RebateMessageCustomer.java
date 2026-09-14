@@ -27,7 +27,7 @@ public class RebateMessageCustomer {
     @Resource
     private IRaffleActivityAccountQuotaService raffleActivityAccountQuotaService;
 
-    @RabbitListener(queues = "#{@rabbitMqTopologyProperties.queues['send_award'].name}")
+    @RabbitListener(queues = "#{@rabbitMqTopologyProperties.queues['send_rebate'].name}")
     public void listener(String message) {
         try {
             log.info("监听用户行为返利消息 message: {}", message);
