@@ -144,7 +144,6 @@ public class RaffleStrategyController implements IRaffleStrategyService {
      * "activityId": 100301
      * }'
      */
-
     @RequestMapping(value = "query_raffle_strategy_rule_weight", method = RequestMethod.POST)
     @Override
     public Response<List<RaffleStrategyRuleWeightResponseDTO>> queryRaffleStrategyRuleWeight(@RequestBody RaffleStrategyRuleWeightRequestDTO request) {
