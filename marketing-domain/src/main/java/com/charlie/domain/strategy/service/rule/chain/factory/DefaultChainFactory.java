@@ -26,6 +26,7 @@ public class DefaultChainFactory {
 
     /**
      * 通过策略ID，构建责任链
+     *
      * @param strategyId 策略ID
      * @return ILogicChain
      */
@@ -63,10 +64,18 @@ public class DefaultChainFactory {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class StrategyAwardVO {
-        /** 抽奖奖品ID - 内部流转使用 */
+        /**
+         * 抽奖奖品ID - 内部流转使用
+         */
         private Integer awardId;
-        /**  */
+        /**
+         * 抽奖类型；黑名单抽奖、权重规则、默认抽奖
+         */
         private String logicModel;
+        /**
+         * 抽奖奖品规则
+         */
+        private String awardRuleValue;
     }
 
     @Getter

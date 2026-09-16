@@ -3,10 +3,14 @@ package com.charlie.trigger.listener;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.charlie.domain.award.event.SendAwardMessageEvent;
+import com.charlie.domain.award.model.entity.DistributeAwardEntity;
+import com.charlie.domain.award.service.IAwardService;
 import com.charlie.types.event.BaseEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 
 /**
  * MQ 消费者 - 用户中奖发奖消息
@@ -20,6 +24,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class SendAwardCustomer {
+
+    @Resource
+    private IAwardService awardService;
 
     /**
      * MQ 消息处理入口。SpEL 从 {@code rabbitMqTopologyProperties} 按逻辑 key 取队列 broker 物理名,与配置文件同源。
@@ -35,9 +42,13 @@ public class SendAwardCustomer {
                     = JSON.parseObject(message, new TypeReference<BaseEvent.EventMessage<SendAwardMessageEvent.SendAwardMessage>>() {
             }.getType());
             SendAwardMessageEvent.SendAwardMessage sendAwardMessage = eventMessage.getData();
-            log.info("用户奖品发送消息解析完成 userId: {} awardId: {} awardTitle: {}",
-                    sendAwardMessage.getUserId(), sendAwardMessage.getAwardId(), sendAwardMessage.getAwardTitle());
-            // TODO 发奖逻辑后续实现(组装发奖策略、发货、更新中奖记录状态等)
+            // 发放奖品
+            DistributeAwardEntity distributeAwardEntity = new DistributeAwardEntity();
+            distributeAwardEntity.setUserId(sendAwardMessage.getUserId());
+            distributeAwardEntity.setOrderId(sendAwardMessage.getOrderId());
+            distributeAwardEntity.setAwardId(sendAwardMessage.getAwardId());
+            distributeAwardEntity.setAwardConfig(sendAwardMessage.getAwardConfig());
+            awardService.distributeAward(distributeAwardEntity);
         } catch (Exception e) {
             log.error("监听用户奖品发送消息，消费失败 message: {}", message, e);
             throw e;

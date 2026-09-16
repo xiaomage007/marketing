@@ -172,4 +172,9 @@ public class AwardRepository implements IAwardRepository {
 
     }
 
+    @Override
+    public String queryAwardKey(Integer awardId) {
+        return awardDao.queryAwardKeyByAwardId(awardId);
+    }
+
 }

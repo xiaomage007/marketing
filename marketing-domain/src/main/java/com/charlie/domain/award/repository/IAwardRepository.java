@@ -19,4 +19,7 @@ public interface IAwardRepository {
     String queryAwardConfig(Integer awardId);
 
     void saveGiveOutPrizesAggregate(GiveOutPrizesAggregate giveOutPrizesAggregate);
+
+    String queryAwardKey(Integer awardId);
+
 }

@@ -1,12 +1,15 @@
 package com.charlie.domain.strategy.service.rule.tree.impl;
 
 import com.charlie.domain.strategy.model.valobj.RuleLogicCheckTypeVO;
+import com.charlie.domain.strategy.model.valobj.StrategyAwardStockKeyVO;
+import com.charlie.domain.strategy.repository.IStrategyRepository;
 import com.charlie.domain.strategy.service.rule.tree.ILogicTreeNode;
 import com.charlie.domain.strategy.service.rule.tree.factory.DefaultTreeFactory;
 import com.charlie.types.common.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Date;
 
 /**
@@ -31,6 +34,9 @@ import java.util.Date;
 @Component("rule_luck_award")
 public class RuleLuckAwardLogicTreeNode implements ILogicTreeNode {
 
+    @Resource
+    private IStrategyRepository strategyRepository;
+
     @Override
     public DefaultTreeFactory.TreeActionEntity logic(String userId, Long strategyId, Integer awardId, String ruleValue, Date endDateTime) {
         log.info("规则过滤-兜底奖品 userId:{} strategyId:{} awardId:{} ruleValue:{}", userId, strategyId, awardId, ruleValue);
@@ -44,6 +50,13 @@ public class RuleLuckAwardLogicTreeNode implements ILogicTreeNode {
         Integer luckAwardId = Integer.valueOf(split[0]);
         // 第二段可选：缺省时给空串，避免下游 NPE
         String awardRuleValue = split.length > 1 ? split[1] : "";
+
+        // 写入延迟队列，延迟消费更新数据库记录。【在trigger的job；UpdateAwardStockJob 下消费队列，更新数据库记录】
+        strategyRepository.awardStockConsumeSendQueue(StrategyAwardStockKeyVO.builder()
+                .strategyId(strategyId)
+                .awardId(awardId)
+                .build());
+
         log.info("规则过滤-兜底奖品 userId:{} strategyId:{} awardId:{} awardRuleValue:{}", userId, strategyId, luckAwardId, awardRuleValue);
         // 兜底节点一定 TAKE_OVER——上游已经接管，本节点负责把奖品「盖掉」成兜底奖品
         return DefaultTreeFactory.TreeActionEntity.builder()
