@@ -23,7 +23,7 @@ public class BlackListLogicChain extends AbstractLogicChain {
 
     @Override
     public DefaultChainFactory.StrategyAwardVO logic(String userId, Long strategyId) {
-        log.info("抽奖责任链-黑名单开始 userId: {} strategyId: {} ruleModel: {}", userId, strategyId, ruleModel());
+        log.info("抽奖责任链-黑名单开始 userId:{} strategyId:{} ruleModel:{}", userId, strategyId, ruleModel());
         // 查询规则值配置
         String ruleValue = repository.queryStrategyRuleValue(strategyId, ruleModel());
         String[] splitRuleValue = ruleValue.split(Constants.COLON);
@@ -38,10 +38,11 @@ public class BlackListLogicChain extends AbstractLogicChain {
                         .logicModel(ruleModel())
                         // 写入默认配置黑名单奖品值 0.01 ~ 1 积分，也可以配置到数据库表中
                         .awardRuleValue("0.01,1")
-                        .build();            }
+                        .build();
+            }
         }
         // 过滤其他责任链
-        log.info("抽奖责任链-黑名单放行 userId: {} strategyId: {} ruleModel: {}", userId, strategyId, ruleModel());
+        log.info("抽奖责任链-黑名单放行 userId:{} strategyId:{} ruleModel:{}", userId, strategyId, ruleModel());
         return next().logic(userId, strategyId);
     }
 
