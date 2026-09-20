@@ -2,6 +2,7 @@ package com.charlie.domain.credit.model.aggregate;
 
 import com.charlie.domain.credit.model.entity.CreditAccountEntity;
 import com.charlie.domain.credit.model.entity.CreditOrderEntity;
+import com.charlie.domain.credit.model.entity.TaskEntity;
 import com.charlie.domain.credit.model.valobj.TradeNameVO;
 import com.charlie.domain.credit.model.valobj.TradeTypeVO;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,8 @@ public class TradeAggregate {
     private CreditAccountEntity creditAccountEntity;
     // 积分订单实体
     private CreditOrderEntity creditOrderEntity;
+    // 任务实体 - 补偿 MQ 消息
+    private TaskEntity taskEntity;
 
     public static CreditAccountEntity createCreditAccountEntity(String userId, BigDecimal adjustAmount) {
         return CreditAccountEntity.builder().userId(userId).adjustAmount(adjustAmount).build();

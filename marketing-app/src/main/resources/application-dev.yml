@@ -145,6 +145,9 @@ rabbitmq:
       send_rebate:
         name: send_rebate
         durable: true                           # broker 重启后队列及消息不丢失
+      credit_adjust_success:
+        name: credit_adjust_success
+        durable: true                           # broker 重启后队列及消息不丢失
 
 # 日志
 logging:
