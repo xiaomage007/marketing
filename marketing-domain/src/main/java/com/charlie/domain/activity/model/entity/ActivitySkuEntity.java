@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 /**
  * @description: 活动sku实体对象
  * @author: Charlie
@@ -26,5 +28,7 @@ public class ActivitySkuEntity {
     private Integer stockCount;
     /** 剩余库存 */
     private Integer stockCountSurplus;
+    /** 商品金额【积分】 */
+    private BigDecimal productAmount;
 
 }
