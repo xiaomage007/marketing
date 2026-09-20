@@ -1,9 +1,12 @@
 package com.charlie.domain.activity.service.quota.policy.impl;
 
 import com.charlie.domain.activity.model.aggregate.CreateQuotaOrderAggregate;
+import com.charlie.domain.activity.model.valobj.OrderStateVO;
 import com.charlie.domain.activity.repository.IActivityRepository;
 import com.charlie.domain.activity.service.quota.policy.ITradePolicy;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 
 /**
  * @description: 返利无支付交易订单，直接充值到账
@@ -21,7 +24,10 @@ public class RebateNoPayTradePolicy implements ITradePolicy {
 
     @Override
     public void trade(CreateQuotaOrderAggregate createQuotaOrderAggregate) {
-        activityRepository.
+        // 不需要支付则修改订单金额为0，状态为完成，直接给用户账户充值
+        createQuotaOrderAggregate.setOrderState(OrderStateVO.completed);
+        createQuotaOrderAggregate.getActivityOrderEntity().setPayAmount(BigDecimal.ZERO);
+        activityRepository.doSaveNoPayOrder(createQuotaOrderAggregate);
     }
 
 }
