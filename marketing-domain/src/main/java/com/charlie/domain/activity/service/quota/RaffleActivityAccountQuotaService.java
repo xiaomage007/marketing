@@ -6,11 +6,13 @@ import com.charlie.domain.activity.model.valobj.ActivitySkuStockKeyVO;
 import com.charlie.domain.activity.model.valobj.OrderStateVO;
 import com.charlie.domain.activity.repository.IActivityRepository;
 import com.charlie.domain.activity.service.IRaffleActivitySkuStockService;
+import com.charlie.domain.activity.service.quota.policy.ITradePolicy;
 import com.charlie.domain.activity.service.quota.rule.factory.DefaultActivityChainFactory;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @description: 抽奖活动服务
@@ -20,8 +22,8 @@ import java.util.Date;
 @Service
 public class RaffleActivityAccountQuotaService extends AbstractRaffleActivityAccountQuota implements IRaffleActivitySkuStockService {
 
-    public RaffleActivityAccountQuotaService(IActivityRepository activityRepository, DefaultActivityChainFactory actionChainFactory) {
-        super(activityRepository, actionChainFactory);
+    public RaffleActivityAccountQuotaService(IActivityRepository activityRepository, DefaultActivityChainFactory actionChainFactory, Map<String, ITradePolicy> tradePolicyGroup) {
+        super(activityRepository, actionChainFactory, tradePolicyGroup);
     }
 
     @Override
@@ -51,11 +53,6 @@ public class RaffleActivityAccountQuotaService extends AbstractRaffleActivityAcc
                 .monthCount(activityCountEntity.getMonthCount())
                 .activityOrderEntity(activityOrderEntity)
                 .build();
-    }
-
-    @Override
-    protected void doSaveOrder(CreateQuotaOrderAggregate createOrderAggregate) {
-        activityRepository.doSaveOrder(createOrderAggregate);
     }
 
     @Override
