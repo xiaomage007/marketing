@@ -1,10 +1,11 @@
-package com.charlie.domain.credit.service;
+package com.charlie.domain.credit.service.adjust;
 
 import com.charlie.domain.credit.model.aggregate.TradeAggregate;
 import com.charlie.domain.credit.model.entity.CreditAccountEntity;
 import com.charlie.domain.credit.model.entity.CreditOrderEntity;
 import com.charlie.domain.credit.model.entity.TradeEntity;
 import com.charlie.domain.credit.repository.ICreditRepository;
+import com.charlie.domain.credit.service.ICreditAdjustService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

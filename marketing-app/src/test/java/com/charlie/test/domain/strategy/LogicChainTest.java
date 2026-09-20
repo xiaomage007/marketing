@@ -52,14 +52,14 @@ public class LogicChainTest {
         ReflectionTestUtils.setField(ruleWeightLogicChain, "userScore", 4900L);
 
         ILogicChain logicChain = defaultChainFactory.openLogicChain(100001L);
-        DefaultChainFactory.StrategyAwardVO strategyAwardVO = logicChain.logic("xiaomage", 100001L);
+        DefaultChainFactory.StrategyAwardVO strategyAwardVO = logicChain.logic("Charlie", 100001L);
         log.info("测试结果：{}", JSON.toJSONString(strategyAwardVO));
     }
 
     @Test
     public void test_LogicChain_rule_default() {
         ILogicChain logicChain = defaultChainFactory.openLogicChain(100001L);
-        DefaultChainFactory.StrategyAwardVO strategyAwardVO = logicChain.logic("xiaomage", 100001L);
+        DefaultChainFactory.StrategyAwardVO strategyAwardVO = logicChain.logic("Charlie", 100001L);
         log.info("测试结果：{}", JSON.toJSONString(strategyAwardVO));
     }
 }
