@@ -1,7 +1,10 @@
 package com.charlie.domain.activity.model.entity;
 
 import com.charlie.domain.activity.model.valobj.OrderTradeTypeVO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @description: 活动商品充值实体对象
@@ -9,6 +12,9 @@ import lombok.Data;
  * @date: 2026/8/18 8:43
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class SkuRechargeEntity {
 
     /** 用户ID */
