@@ -1,10 +1,7 @@
 package com.charlie.domain.activity.service.quota;
 
 import com.charlie.domain.activity.model.aggregate.CreateQuotaOrderAggregate;
-import com.charlie.domain.activity.model.entity.ActivityCountEntity;
-import com.charlie.domain.activity.model.entity.ActivityEntity;
-import com.charlie.domain.activity.model.entity.ActivitySkuEntity;
-import com.charlie.domain.activity.model.entity.SkuRechargeEntity;
+import com.charlie.domain.activity.model.entity.*;
 import com.charlie.domain.activity.repository.IActivityRepository;
 import com.charlie.domain.activity.service.IRaffleActivityAccountQuotaService;
 import com.charlie.domain.activity.service.quota.policy.ITradePolicy;
@@ -34,7 +31,7 @@ public abstract class AbstractRaffleActivityAccountQuota extends RaffleActivityA
 
 
     @Override
-    public String createOrder(SkuRechargeEntity skuRechargeEntity) {
+    public UnpaidActivityOrderEntity createOrder(SkuRechargeEntity skuRechargeEntity) {
         // 1. 参数校验
         String userId = skuRechargeEntity.getUserId();
         Long sku = skuRechargeEntity.getSku();
@@ -42,6 +39,11 @@ public abstract class AbstractRaffleActivityAccountQuota extends RaffleActivityA
         if (null == sku || StringUtils.isBlank(userId) || StringUtils.isBlank(outBusinessNo)) {
             throw new AppException(ResponseCode.ILLEGAL_PARAMETER.getCode(), ResponseCode.ILLEGAL_PARAMETER.getInfo());
         }
+
+        // 2. 查询未支付订单「一个月以内的未支付订单」
+        UnpaidActivityOrderEntity unpaidCreditOrder =  activityRepository.queryUnpaidActivityOrder(skuRechargeEntity);
+        if (null != unpaidCreditOrder) return unpaidCreditOrder;
+
         // 2. 查询基础信息
         // 2.1 通过sku查询活动信息
         ActivitySkuEntity activitySkuEntity = queryActivitySku(sku);
