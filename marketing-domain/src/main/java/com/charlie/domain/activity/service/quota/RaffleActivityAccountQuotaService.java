@@ -3,7 +3,6 @@ package com.charlie.domain.activity.service.quota;
 import com.charlie.domain.activity.model.aggregate.CreateQuotaOrderAggregate;
 import com.charlie.domain.activity.model.entity.*;
 import com.charlie.domain.activity.model.valobj.ActivitySkuStockKeyVO;
-import com.charlie.domain.activity.model.valobj.OrderStateVO;
 import com.charlie.domain.activity.repository.IActivityRepository;
 import com.charlie.domain.activity.service.IRaffleActivitySkuStockService;
 import com.charlie.domain.activity.service.quota.policy.ITradePolicy;
@@ -41,7 +40,7 @@ public class RaffleActivityAccountQuotaService extends AbstractRaffleActivityAcc
         activityOrderEntity.setTotalCount(activityCountEntity.getTotalCount());
         activityOrderEntity.setDayCount(activityCountEntity.getDayCount());
         activityOrderEntity.setMonthCount(activityCountEntity.getMonthCount());
-        activityOrderEntity.setState(OrderStateVO.completed);
+        activityOrderEntity.setPayAmount(activitySkuEntity.getProductAmount());
         activityOrderEntity.setOutBusinessNo(skuRechargeEntity.getOutBusinessNo());
 
         // 构建聚合对象
