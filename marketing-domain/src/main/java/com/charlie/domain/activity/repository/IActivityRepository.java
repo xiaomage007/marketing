@@ -5,6 +5,7 @@ import com.charlie.domain.activity.model.aggregate.CreateQuotaOrderAggregate;
 import com.charlie.domain.activity.model.entity.*;
 import com.charlie.domain.activity.model.valobj.ActivitySkuStockKeyVO;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -62,4 +63,7 @@ public interface IActivityRepository {
     UnpaidActivityOrderEntity queryUnpaidActivityOrder(SkuRechargeEntity skuRechargeEntity);
 
     List<SkuProductEntity> querySkuProductEntityListByActivityId(Long activityId);
+
+    BigDecimal queryUserCreditAccountAmount(String userId);
+
 }
