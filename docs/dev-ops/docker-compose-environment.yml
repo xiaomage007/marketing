@@ -50,23 +50,6 @@ services:
     networks:
       - my-network
 
-  # phpmyadmin https://hub.docker.com/_/phpmyadmin
-  phpmyadmin:
-    image: phpmyadmin:5.2.1
-    container_name: phpmyadmin
-    hostname: phpmyadmin
-    ports:
-      - 8899:80
-    environment:
-      - PMA_HOST=mysql
-      - PMA_PORT=3306
-      - MYSQL_ROOT_PASSWORD=123456
-    depends_on:
-      mysql:
-        condition: service_healthy
-    networks:
-      - my-network
-
   # Redis
   redis:
     image: redis:6.2
@@ -127,7 +110,7 @@ services:
 
   # portainer Docker 可视化管理面板 http://localhost:9000 或 https://localhost:9443
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:2.45.1
     container_name: portainer
     restart: always
     ports:
