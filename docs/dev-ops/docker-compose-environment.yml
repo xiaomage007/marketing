@@ -2,6 +2,33 @@
 # docker 代理和使用文档；https://bugstack.cn/md/road-map/docker.html
 version: '3.9'
 services:
+  # 注册中心 https://github.com/nacos-group/nacos-docker - 其他配置可参考(集群)
+  # http://127.0.0.1:8848/nacos 【账号：nacos 密码：nacos】
+  nacos:
+    image: nacos/nacos-server:v2.4.3
+    container_name: nacos
+    restart: always
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    environment:
+      - PREFER_HOST_MODE=hostname
+      - MODE=standalone
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_DB_NAME=nacos_config
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=123456
+      - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+      - NACOS_AUTH_IDENTITY_KEY=2222
+      - NACOS_AUTH_IDENTITY_VALUE=2xxx
+      - NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789
+    networks:
+      - my-network
+    depends_on:
+      mysql:
+        condition: service_healthy
   mysql:
     image: mysql:8.0.32
     container_name: mysql
@@ -20,23 +47,6 @@ services:
       timeout: 10s
       retries: 10
       start_period: 15s
-    networks:
-      - my-network
-
-  # phpmyadmin https://hub.docker.com/_/phpmyadmin
-  phpmyadmin:
-    image: phpmyadmin:5.2.1
-    container_name: phpmyadmin
-    hostname: phpmyadmin
-    ports:
-      - 8899:80
-    environment:
-      - PMA_HOST=mysql
-      - PMA_PORT=3306
-      - MYSQL_ROOT_PASSWORD=123456
-    depends_on:
-      mysql:
-        condition: service_healthy
     networks:
       - my-network
 
@@ -98,6 +108,23 @@ services:
     volumes:
       - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
 
+  # portainer Docker 可视化管理面板 http://localhost:9000 或 https://localhost:9443
+  portainer:
+    image: portainer/portainer-ce:2.45.1
+    container_name: portainer
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    command: --http-enabled
+
 networks:
   my-network:
     driver: bridge
+
+volumes:
+  portainer_data:

@@ -2,13 +2,15 @@ package com.charlie.api.dto;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @description: 活动抽奖请求对象
  * @author: Charlie
  * @date: 2026/8/31 10:12
  */
 @Data
-public class ActivityDrawRequestDTO {
+public class ActivityDrawRequestDTO implements Serializable {
 
     /**
      * 用户ID
