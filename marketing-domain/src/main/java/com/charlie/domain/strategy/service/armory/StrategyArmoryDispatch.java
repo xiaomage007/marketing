@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.security.SecureRandom;
 import java.util.*;
 
@@ -75,65 +74,68 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
         return true;
     }
 
+    /**
+     * 计算公式；
+     * 1. 找到范围内最小的概率值，比如 0.1、0.02、0.003，需要找到的值是 0.003
+     * 2. 基于1找到的最小值，0.003 就可以计算出百分比、千分比的整数值。这里就是1000
+     * 3. 那么「概率 * 1000」分别占比100个、20个、3个，总计是123个
+     * 4. 后续的抽奖就用123作为随机数的范围值，生成的值100个都是0.1概率的奖品、20个是概率0.02的奖品、最后是3个是0.003的奖品。
+     */
     private void assembleLotteryStrategy(String key, List<StrategyAwardEntity> strategyAwardEntities) {
         // 1. 获取最小概率值
-        // 详细：找出所有奖品中的最小概率值，作为切分概率区间的「最小刻度」
-        //      stream 取出每个 awardRate -> min 比较 -> 若列表为空兜底返回 0
         BigDecimal minAwardRate = strategyAwardEntities.stream()
                 .map(StrategyAwardEntity::getAwardRate)
                 .min(BigDecimal::compareTo)
                 .orElse(BigDecimal.ZERO);
 
-        // 2. 获取概率值总和
-        // 详细：累加全部奖品概率值得到总和（理想等于 1，实际可能略有偏差），用于推算查找表总容量
-        //      reduce 以 0 为初值，逐个 BigDecimal 相加
-        BigDecimal totalAwardRate = strategyAwardEntities.stream()
-                .map(StrategyAwardEntity::getAwardRate)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        // 2. 循环计算找到概率范围值
+        BigDecimal rateRange = BigDecimal.valueOf(convert(minAwardRate.doubleValue()));
 
-        // 3. 用 1 % 0.0001 获得概率范围，百分位、千分位、万分位
-        // 详细：用「概率总和 ÷ 最小概率」算出查找表总容量 rateRange
-        //      例如总和=1、最小=0.0001 -> rateRange=10000（万分位精度）
-        //      保留 0 位小数 + CEILING 向上取整，保证覆盖全部概率不丢份额
-        BigDecimal rateRange = totalAwardRate.divide(minAwardRate, 0, RoundingMode.CEILING);
-
-        // 4. 生成策略奖品概率查找表「这里指需要在list集合中，存放上对应的奖品占位即可，占位越多等于概率越高」
-        // 详细：初始化查找表 List，奖品ID 作为占位元素，占位次数 = 概率占比 × 总容量，概率越高占位越多
-        //      预分配容量 rateRange.intValue()，避免扩容拷贝
+        // 3. 生成策略奖品概率查找表「这里指需要在list集合中，存放上对应的奖品占位即可，占位越多等于概率越高」
         List<Integer> strategyAwardSearchRateTables = new ArrayList<>(rateRange.intValue());
-        // 遍历每个奖品，按其概率占比把奖品ID 重复填入查找表
         for (StrategyAwardEntity strategyAward : strategyAwardEntities) {
-            // 取出当前奖品ID，作为查找表中的占位值
             Integer awardId = strategyAward.getAwardId();
-            // 取出当前奖品的概率值
             BigDecimal awardRate = strategyAward.getAwardRate();
             // 计算出每个概率值需要存放到查找表的数量，循环填充
-            // 详细：占位数 = rateRange × awardRate，setScale(0, CEILING) 向上取整转 int
-            //      内层循环：把 awardId 重复 add 这么多次到查找表中
-            for (int i = 0; i < rateRange.multiply(awardRate).setScale(0, RoundingMode.CEILING).intValue(); i++) {
+            for (int i = 0; i < rateRange.multiply(awardRate).intValue(); i++) {
                 strategyAwardSearchRateTables.add(awardId);
             }
         }
 
-        // 5. 对存储的奖品进行乱序操作
-        // 详细：Collections.shuffle 随机乱序，打破「相同奖品ID 连续排布」的顺序
-        //      避免相邻随机数总命中同一奖品，提升分布的随机性
+        // 4. 对存储的奖品进行乱序操作
         Collections.shuffle(strategyAwardSearchRateTables);
 
-        // 6. 生成出Map集合，key值，对应的就是后续的概率值。通过概率来获得对应的奖品ID
-        // 详细：把 List 转为 LinkedHashMap：key=索引(0 ~ size-1)，value=该位置对应的奖品ID
-        //      使用 LinkedHashMap 保持乱序后的写入顺序，最终存入 Redis Hash 供抽奖时按随机数索引取值
+        // 5. 生成出Map集合，key值，对应的就是后续的概率值。通过概率来获得对应的奖品ID
         Map<Integer, Integer> shuffleStrategyAwardSearchRateTable = new LinkedHashMap<>();
         for (int i = 0; i < strategyAwardSearchRateTables.size(); i++) {
-            // 把索引 i 与对应位置的奖品ID 一一映射写入 Map
             shuffleStrategyAwardSearchRateTable.put(i, strategyAwardSearchRateTables.get(i));
         }
 
-        // 7. 存放到 Redis
-        // 详细：调用仓储把「概率区间总量」和「查找表 Map」写入 Redis，供后续 getRandomAwardId 抽奖时读取
-        //      第二个参数传 Map.size()，即查找表实际长度（等价于 rateRange 对应容量）
+        // 6. 存放到 Redis
         repository.storeStrategyAwardSearchRateTable(key, shuffleStrategyAwardSearchRateTable.size(), shuffleStrategyAwardSearchRateTable);
 
+    }
+
+    private double convert(double min) {
+        if (0 == min) return 1D;
+
+        String minStr = String.valueOf(min);
+
+        // 小数点前
+        String beginVale = minStr.substring(0, minStr.indexOf("."));
+        int beginLength = 0;
+        if (Double.parseDouble(beginVale) > 0) {
+            beginLength = minStr.substring(0, minStr.indexOf(".")).length();
+        }
+
+        // 小数点后
+        String endValue = minStr.substring(minStr.indexOf(".") + 1);
+        int endLength = 0;
+        if (Double.parseDouble(endValue) > 0) {
+            endLength = minStr.substring(minStr.indexOf(".") + 1).length();
+        }
+
+        return Math.pow(10, beginLength + endLength);
     }
 
     @Override

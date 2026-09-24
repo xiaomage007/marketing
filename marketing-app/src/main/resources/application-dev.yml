@@ -149,6 +149,20 @@ rabbitmq:
         name: credit_adjust_success
         durable: true                           # broker 重启后队列及消息不丢失
 
+dubbo:
+  application:
+    name: marketing
+    version: 1.0
+  registry:
+    id: nacos-registry
+    address: nacos://127.0.0.1:8848
+  protocol:
+    name: dubbo
+    port: -1
+  scan:
+    base-packages: com.charlie.trigger.api
+
+
 # 日志
 logging:
   level:
