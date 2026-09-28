@@ -2,6 +2,7 @@ package com.charlie.infrastructure.mq;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -46,6 +47,7 @@ import java.util.Map;
  * @author Charlie
  */
 @Data
+@Component
 @ConfigurationProperties(prefix = "rabbitmq.topology")
 public class RabbitMqTopologyProperties {
 

@@ -108,7 +108,7 @@ public class ActivitySkuStockZeroCustomer {
      * 队列/交换机/binding 的拓扑定义在 {@code application*.yml} 的 {@code rabbitmq.topology} 配置段,
      * 由 RabbitMqConfig(marketing-infrastructure 模块)读取并构建 Declarables,启动时由 RabbitAdmin 自动 declare。
      * <p>
-     * SpEL {@code #{@rabbitMqTopologyProperties.queues['activity-sku-stock-zero'].name}}:
+     * SpEL {@code #{@rabbitMqTopologyProperties.queues['activity_sku_stock_zero'].name}}:
      * 引用配置绑定 Bean,按逻辑 key 取队列的 broker 物理名,与配置文件同源。
      * <p>
      * 流程:
@@ -136,7 +136,7 @@ public class ActivitySkuStockZeroCustomer {
      * 失败时不能简单 {@code log + return}——必须抛出去让 Spring AMQP 走「消息拒绝」逻辑,
      * 触发死信队列 / 重试机制;否则静默吞异常会导致「Redis 0、DB 99」的脏数据永远不会被对账发现。
      */
-    @RabbitListener(queues = "#{@rabbitMqTopologyProperties.queues['activity-sku-stock-zero'].name}")
+    @RabbitListener(queues = "#{@rabbitMqTopologyProperties.queues['activity_sku_stock_zero'].name}")
     public void listener(String message) {
 
         try {
