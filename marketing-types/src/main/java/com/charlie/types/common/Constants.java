@@ -28,4 +28,12 @@ public class Constants {
 
     }
 
+    /**
+     * 分布式动态配置中心(DCC)。每个配置项(dataId)与 @DCCValue 中的 key 一一对应，
+     * 同一分组下的配置在 Nacos 控制台上统一管理
+     */
+    public static class DCC {
+        public static String CONFIG_GROUP = "marketing-dcc";
+    }
+
 }
