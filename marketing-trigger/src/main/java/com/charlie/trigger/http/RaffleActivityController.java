@@ -26,6 +26,7 @@ import com.charlie.domain.strategy.model.entity.RaffleAwardEntity;
 import com.charlie.domain.strategy.model.entity.RaffleFactorEntity;
 import com.charlie.domain.strategy.service.IRaffleStrategy;
 import com.charlie.domain.strategy.service.armory.IStrategyArmory;
+import com.charlie.types.annotation.DCCValue;
 import com.charlie.types.enums.ResponseCode;
 import com.charlie.types.exception.AppException;
 import lombok.extern.slf4j.Slf4j;
@@ -73,6 +74,11 @@ public class RaffleActivityController implements IRaffleActivityService {
     private IBehaviorRebateService behaviorRebateService;
     @Resource
     private ICreditAdjustService creditAdjustService;
+
+    // dcc 统一配置中心动态配置降级开关
+    @DCCValue("degradeSwitch:open")
+    private String degradeSwitch;
+
 
     /**
      * 活动装配 - 数据预热 | 把活动配置的对应的 sku 一起装配
@@ -142,6 +148,12 @@ public class RaffleActivityController implements IRaffleActivityService {
     public Response<ActivityDrawResponseDTO> draw(ActivityDrawRequestDTO request) {
         try {
             log.info("活动抽奖 userId:{} activityId:{}", request.getUserId(), request.getActivityId());
+            if (!"open".equals(degradeSwitch)) {
+                return Response.<ActivityDrawResponseDTO>builder()
+                        .code(ResponseCode.DEGRADE_SWITCH.getCode())
+                        .info(ResponseCode.DEGRADE_SWITCH.getInfo())
+                        .build();
+            }
             // 1. 参数校验
             // 详细：校验用户ID非空、活动ID非空，任一不满足则抛出参数异常，由下方catch捕获后返回错误码
             // 举例：入参{"userId":"","activityId":100301}，userId为空串，返回code=ILLEGAL_PARAMETER的响应
