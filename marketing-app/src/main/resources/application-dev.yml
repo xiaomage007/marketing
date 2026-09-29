@@ -102,6 +102,14 @@ redis:
       ping-interval: 60000
       keep-alive: true
 
+# Nacos 配置中心 - 分布式动态配置(DCC)，控制台 http://127.0.0.1:8848/nacos 【账号：nacos 密码：nacos】
+# 配置项托管规则：dataId = @DCCValue("key:defaultValue") 中的 key，分组固定为 marketing-dcc
+nacos:
+  sdk:
+    config:
+      server-addr: 127.0.0.1:8848
+      namespace:        # 命名空间ID(不是名称)，需先在控制台创建；dev 留空走 public 空间
+
 # RabbitMQ - 由 spring-boot-starter-amqp 自动装配
 # topology(Exchange/Queue/Binding)声明改为配置驱动:由 com.charlie.infrastructure.mq.RabbitMqConfig
 # 读取 rabbitmq.topology 段统一构建 Declarables,启动时 RabbitAdmin 自动 declare

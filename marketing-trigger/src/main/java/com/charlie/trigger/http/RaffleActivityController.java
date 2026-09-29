@@ -77,7 +77,7 @@ public class RaffleActivityController implements IRaffleActivityService {
 
     // dcc 统一配置中心动态配置降级开关
     @DCCValue("degradeSwitch:open")
-    private String degradeSwitch;
+    private volatile String degradeSwitch;
 
 
     /**
