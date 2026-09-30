@@ -32,6 +32,7 @@
 
     <properties>
         <java.version>1.8</java.version>
+        <sentinel.version>1.8.7</sentinel.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
@@ -142,6 +143,33 @@
                 <groupId>com.alibaba.nacos</groupId>
                 <artifactId>nacos-client</artifactId>
                 <version>2.1.0</version>
+            </dependency>
+            <!-- Sentinel 分布式限流/熔断：规则经 nacos 数据源动态下发 -->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-core</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+            <!-- 热点参数限流自 1.8.x 起独立成模块 -->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-parameter-flow-control</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-datasource-nacos</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-transport-common</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-transport-simple-http</artifactId>
+                <version>${sentinel.version}</version>
             </dependency>
             <!-- 工程模块 -->
             <dependency>

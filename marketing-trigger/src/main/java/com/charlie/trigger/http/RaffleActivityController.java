@@ -1,5 +1,11 @@
 package com.charlie.trigger.http;
 
+import com.alibaba.csp.sentinel.Entry;
+import com.alibaba.csp.sentinel.EntryType;
+import com.alibaba.csp.sentinel.SphU;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
+import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
+import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
 import com.alibaba.fastjson.JSON;
 import com.charlie.api.IRaffleActivityService;
 import com.charlie.api.dto.*;
@@ -79,6 +85,10 @@ public class RaffleActivityController implements IRaffleActivityService {
     @DCCValue("degradeSwitch:open")
     private volatile String degradeSwitch;
 
+    // Sentinel 防护资源名：一次 entry 同时驱动 接口级QPS(FlowRule) + 按userId热点(ParamFlowRule) + 熔断(DegradeRule)
+    // 规则托管 Nacos(dataId: draw-flow-rules / draw-param-flow-rules / draw-degrade-rules)，见 SentinelRuleNacosConfig
+    private static final String SENTINEL_RES_DRAW = "draw_api";
+
 
     /**
      * 活动装配 - 数据预热 | 把活动配置的对应的 sku 一起装配
@@ -145,22 +155,32 @@ public class RaffleActivityController implements IRaffleActivityService {
      */
     @RequestMapping(value = "draw", method = RequestMethod.POST)
     @Override
-    public Response<ActivityDrawResponseDTO> draw(ActivityDrawRequestDTO request) {
+    public Response<ActivityDrawResponseDTO> draw(@RequestBody ActivityDrawRequestDTO request) {
+        // 0. 活动降级开关 - dcc 统一配置中心动态配置，运营级整站降级（粒度最粗）
+        if (!"open".equals(degradeSwitch)) {
+            return Response.<ActivityDrawResponseDTO>builder()
+                    .code(ResponseCode.DEGRADE_SWITCH.getCode())
+                    .info(ResponseCode.DEGRADE_SWITCH.getInfo())
+                    .build();
+        }
+        log.info("活动抽奖 userId:{} activityId:{}", request.getUserId(), request.getActivityId());
+        // 1. 参数校验
+        // 详细：校验用户ID非空、活动ID非空，任一不满足则抛出参数异常，由下方catch捕获后返回错误码。
+        //      放在 Sentinel 埋点之前，参数不合法的请求不占用限流配额，空 userId 也不作为热点参数 key
+        // 举例：入参{"userId":"","activityId":100301}，userId为空串，返回code=ILLEGAL_PARAMETER的响应
+        if (StringUtils.isBlank(request.getUserId()) || null == request.getActivityId()) {
+            throw new AppException(ResponseCode.ILLEGAL_PARAMETER.getCode(), ResponseCode.ILLEGAL_PARAMETER.getInfo());
+        }
+        // 2. Sentinel 防护埋点
+        // 详细：一次 entry 同时驱动三类规则——接口级 QPS 流控(FlowRule)、按 userId 热点参数流控(ParamFlowRule,
+        //      paramIdx=0 即此处传入的 userId)、慢调用比例熔断(DegradeRule)；被拦截时快速失败返回友好提示，
+        //      由 Nacos 数据源动态下发阈值，无需重启；entry 包住业务全流程，慢调用统计(熔断判定)才准确
+        // 举例：全局 QPS 超阈值返回code=RATE_LIMIT；单 userId 每秒超20次返回code=RATE_LIMIT；
+        //      下游变慢导致慢调用比例超阈值，熔断打开期返回code=CIRCUIT_BREAKER
+        Entry entry = null;
         try {
-            log.info("活动抽奖 userId:{} activityId:{}", request.getUserId(), request.getActivityId());
-            if (!"open".equals(degradeSwitch)) {
-                return Response.<ActivityDrawResponseDTO>builder()
-                        .code(ResponseCode.DEGRADE_SWITCH.getCode())
-                        .info(ResponseCode.DEGRADE_SWITCH.getInfo())
-                        .build();
-            }
-            // 1. 参数校验
-            // 详细：校验用户ID非空、活动ID非空，任一不满足则抛出参数异常，由下方catch捕获后返回错误码
-            // 举例：入参{"userId":"","activityId":100301}，userId为空串，返回code=ILLEGAL_PARAMETER的响应
-            if (StringUtils.isBlank(request.getUserId()) || null == request.getActivityId()) {
-                throw new AppException(ResponseCode.ILLEGAL_PARAMETER.getCode(), ResponseCode.ILLEGAL_PARAMETER.getInfo());
-            }
-            // 2. 参与活动 - 创建参与记录订单
+            entry = SphU.entry(SENTINEL_RES_DRAW, EntryType.IN, 1, request.getUserId());
+            // 3. 参与活动 - 创建参与记录订单
             // 详细：领域服务内部先校验活动状态（须为open）与活动日期（当前时间须在起止时间内），
             //      再查询该用户是否存在未使用的参与订单，存在则直接复用返回（保证幂等，不重复扣减额度）；
             //      不存在则做额度账户过滤（扣减用户可用抽奖次数）、构建新订单，与额度扣减在同一事务内落库
@@ -168,7 +188,7 @@ public class RaffleActivityController implements IRaffleActivityService {
             //      若本次抽奖后续流程中断，再次请求会命中未使用订单，直接返回原orderId，不重复扣额度
             UserRaffleOrderEntity orderEntity = raffleActivityPartakeService.createOrder(request.getUserId(), request.getActivityId());
             log.info("活动抽奖，创建订单 userId:{} activityId:{} orderId:{}", request.getUserId(), request.getActivityId(), orderEntity.getOrderId());
-            // 3. 抽奖策略 - 执行抽奖
+            // 4. 抽奖策略 - 执行抽奖
             // 详细：以参与订单中的userId与strategyId构建抽奖因子，领域服务先做抽奖前规则过滤
             //      （黑名单用户直接返回固定兜底奖品，权重规则按用户积分走对应概率子表），
             //      未被规则接管则走默认概率查找表随机抽奖，返回中奖奖品实体（含奖品ID、名称、排序）
@@ -179,7 +199,7 @@ public class RaffleActivityController implements IRaffleActivityService {
                     .strategyId(orderEntity.getStrategyId())
                     .endDateTime(orderEntity.getEndDateTime())
                     .build());
-            // 4. 存放结果 - 写入中奖记录
+            // 5. 存放结果 - 写入中奖记录
             // 详细：用参与订单信息与中奖结果构建用户中奖记录，领域服务内部同时构建一条发奖MQ任务，
             //      两者组装成聚合对象在同一事务内落库，后续由MQ消费或定时任务补偿完成异步发货
             // 举例：orderId=xxx命中awardId=101，中奖记录表插入一条create状态的中奖记录，
@@ -196,7 +216,7 @@ public class RaffleActivityController implements IRaffleActivityService {
                     .awardConfig(raffleAwardEntity.getAwardConfig())
                     .build();
             awardService.saveUserAwardRecord(userAwardRecord);
-            // 5. 返回结果
+            // 6. 返回结果
             // 详细：把中奖奖品ID、奖品名称、奖品排序封装为响应DTO，以成功码返回给前端
             // 举例：返回{"code":"0000","info":"成功","data":{"awardId":101,"awardTitle":"随机积分","awardIndex":1}}
             return Response.<ActivityDrawResponseDTO>builder()
@@ -208,6 +228,18 @@ public class RaffleActivityController implements IRaffleActivityService {
                             .awardIndex(raffleAwardEntity.getSort())
                             .build())
                     .build();
+        } catch (DegradeException e) {
+            // 熔断降级：DegradeRule 触发，熔断打开期内快速失败，不下游
+            log.warn("活动抽奖 触发熔断降级 userId:{} resource:{} rule:{}", request.getUserId(), SENTINEL_RES_DRAW, e.getRule());
+            return drawDegrade();
+        } catch (FlowException e) {
+            // 限流：FlowException 为接口级/热点的父类，ParamFlowException 是其子类，同一命中，无需单独捕获
+            log.warn("活动抽奖 触发限流 userId:{} resource:{} rule:{}", request.getUserId(), SENTINEL_RES_DRAW, e.getRule());
+            return drawRateLimit();
+        } catch (BlockException e) {
+            // 其他系统保护（自适应/授权等），统一按限流提示
+            log.warn("活动抽奖 触发系统保护 userId:{} resource:{}", request.getUserId(), SENTINEL_RES_DRAW);
+            return drawRateLimit();
         } catch (AppException e) {
             log.error("活动抽奖失败 userId:{} activityId:{}", request.getUserId(), request.getActivityId(), e);
             return Response.<ActivityDrawResponseDTO>builder()
@@ -220,7 +252,32 @@ public class RaffleActivityController implements IRaffleActivityService {
                     .code(ResponseCode.UN_ERROR.getCode())
                     .info(ResponseCode.UN_ERROR.getInfo())
                     .build();
+        } finally {
+            // entry 必须在 finally 退出，否则慢调用（DegradeRule 的 RT 统计）数据不准确
+            if (entry != null) {
+                entry.exit();
+            }
         }
+    }
+
+    /**
+     * Sentinel 限流兜底 - 快速失败返回友好提示，不执行业务，不产生订单/中奖记录
+     */
+    private Response<ActivityDrawResponseDTO> drawRateLimit() {
+        return Response.<ActivityDrawResponseDTO>builder()
+                .code(ResponseCode.RATE_LIMIT.getCode())
+                .info(ResponseCode.RATE_LIMIT.getInfo())
+                .build();
+    }
+
+    /**
+     * Sentinel 熔断兜底 - 熔断打开期返回友好提示，保护下游依赖不被继续拖垮
+     */
+    private Response<ActivityDrawResponseDTO> drawDegrade() {
+        return Response.<ActivityDrawResponseDTO>builder()
+                .code(ResponseCode.CIRCUIT_BREAKER.getCode())
+                .info(ResponseCode.CIRCUIT_BREAKER.getInfo())
+                .build();
     }
 
     /**
