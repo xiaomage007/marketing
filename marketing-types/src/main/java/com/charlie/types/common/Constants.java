@@ -36,4 +36,15 @@ public class Constants {
         public static String CONFIG_GROUP = "marketing-dcc";
     }
 
+    /**
+     * Sentinel 限流/熔断规则托管。规则发布在 Nacos 同一服务下,由 sentinel-datasource-nacos
+     * 数据源启动拉取并监听变更秒级热更新;dataId 一类规则一份,JSON 数组格式
+     */
+    public static class Sentinel {
+        public static String RULE_GROUP = "marketing-sentinel";
+        public static String FLOW_DATA_ID = "draw-flow-rules";
+        public static String PARAM_FLOW_DATA_ID = "draw-param-flow-rules";
+        public static String DEGRADE_DATA_ID = "draw-degrade-rules";
+    }
+
 }

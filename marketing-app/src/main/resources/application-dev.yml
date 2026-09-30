@@ -110,6 +110,21 @@ nacos:
       server-addr: 127.0.0.1:8848
       namespace:        # 命名空间ID(不是名称)，需先在控制台创建；dev 留空走 public 空间
 
+# Sentinel 限流/熔断 - 规则托管 Nacos（与 DCC 同一服务），规则发布后秒级热更新
+# dataId：draw-flow-rules(接口级QPS) / draw-param-flow-rules(按userId热点) / draw-degrade-rules(熔断降级)
+# Dashboard：java -jar sentinel-dashboard-1.8.7.jar --server.port=8080（账号 sentinel/sentinel）
+# 客户端上报需 JVM 参数（spring-boot:run 用 -Dspring-boot.run.jvmArguments，IDE 用 VM options）：
+#   -Dcsp.sentinel.dashboard.server=127.0.0.1:8080
+#   -Dcsp.sentinel.api.port=8720        # command center 端口，占用时可改
+#   -Dproject.name=marketing-app        # 控制台显示的应用名，默认为主类名小写
+sentinel:
+  rule:
+    server-addr: 127.0.0.1:8848
+    group: marketing-sentinel
+    flow-data-id: draw-flow-rules
+    param-flow-data-id: draw-param-flow-rules
+    degrade-data-id: draw-degrade-rules
+
 # RabbitMQ - 由 spring-boot-starter-amqp 自动装配
 # topology(Exchange/Queue/Binding)声明改为配置驱动:由 com.charlie.infrastructure.mq.RabbitMqConfig
 # 读取 rabbitmq.topology 段统一构建 Declarables,启动时 RabbitAdmin 自动 declare
